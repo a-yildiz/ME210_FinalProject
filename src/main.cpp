@@ -6,18 +6,6 @@
 #include <Metro.h>
 
 
-/* Pins (Don't forget to set pinMode in setup) */ 
-int potPin_in = A1;
-int beaconPin_in = A2;
-
-int spstPin_in = 4;
-int LEDPin_out = 3;
-
-int RGB_RED_PIN = 7;
-int RGB_GREEN_PIN = 8;
-int RGB_BLUE_PIN = 9;
-
-
 
 /* Initializations */
 states State = AtStudioDisoriented;
@@ -59,6 +47,9 @@ void setup() {
   /* Pins */
   pinMode(potPin_in, INPUT);
   pinMode(beaconPin_in, INPUT);
+  pinMode(lineLeftPin_in, INPUT);
+  pinMode(lineRightPin_in, INPUT);
+  pinMode(gateServoPin_out, OUTPUT);
 
   pinMode(spstPin_in, INPUT);
   pinMode(LEDPin_out, OUTPUT);
@@ -66,6 +57,15 @@ void setup() {
   pinMode(RGB_RED_PIN, OUTPUT);
   pinMode(RGB_GREEN_PIN, OUTPUT);
   pinMode(RGB_BLUE_PIN, OUTPUT);
+
+  pinMode(bridge1Pin_pwm_out, OUTPUT);
+  pinMode(bridge2Pin_pwm_out, OUTPUT);
+
+  pinMode(bridge1Pin_dir_out, OUTPUT);
+  pinMode(bridge2Pin_dir_out, OUTPUT);
+
+
+  digitalWrite(gateServoPin_out, LOW);
 
 
   ITimer1.init();
@@ -79,8 +79,9 @@ void setup() {
 
 void loop() {
   /* DEBUG */
-  PrintVar("State", State);
+  // PrintVar("State", State);
   // PrintVar("Action", Action);
+  delay(500);
 
   /* Detect Studio A or B from IR sensor. */
   Studio_ID = detectStudioID(spstPin_in);
@@ -90,14 +91,13 @@ void loop() {
   
   /* State Machines */
   ExecutePrimarySM();
-  ExecutePowerSM();
   ExecuteRGBLightSM();
-  ExecuteSafetySM();
+  // ExecutePowerSM();
+  // ExecuteSafetySM();
 
-}
+  int beacon_val =  analogRead(beaconPin_in);
+  PrintVar("beacon val", beacon_val);
 
-void DummyHandler(){
-  Serial.println("Dummy Here");
 }
 
 
@@ -112,8 +112,8 @@ void ExecutePrimarySM(){
     }
 
     case AtStudioOrienting:{
-      int new_beacon_reading = getBeaconSignal(beaconPin_in);
-      if (StrongestBeaconSignalFound(beacon_reading, new_beacon_reading)) {
+      int new_beacon_reading = analogRead(beaconPin_in);
+      if (beaconStrongEnough(new_beacon_reading)) {
         StopMotors();
         State = AtStudioOriented;
         StateTimer.reset();
@@ -151,7 +151,7 @@ void ExecutePrimarySM(){
 
     case HeadingToBadBasket:{
       MoveForward();
-      if (detectLine()==RED){
+      if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
         State = FollowingRedTapeToBasket;
       }
       break;
@@ -159,7 +159,7 @@ void ExecutePrimarySM(){
 
     case HeadingToGoodBasket:{
       MoveForward();
-      if (detectLine()==RED){
+      if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
         State = IgnoreRedTapeToBasket;
         StateTimer.reset();
       }
@@ -168,7 +168,7 @@ void ExecutePrimarySM(){
 
     case FollowingRedTapeToBasket:{
       followRedLine();
-      if (detectLine()==BLACK){
+      if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
         State = DumpingBalls;
         StateTimer.reset();
       }
@@ -177,7 +177,7 @@ void ExecutePrimarySM(){
 
     case IgnoreRedTapeToBasket:{
       if (StateTimer.check()){
-        if (detectLine()==RED){
+        if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
           State = FollowingRedTapeToBasket;
         }
       }
@@ -186,7 +186,7 @@ void ExecutePrimarySM(){
 
     case IgnoreRedTapeToStudio:{
       if (StateTimer.check()){
-        if (detectLine()==RED){
+        if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
           State = FollowingRedTapeToStudio;
         }
       }
@@ -195,10 +195,10 @@ void ExecutePrimarySM(){
 
     case DumpingBalls:{
       StopMotors();
-      RaiseLever();
+      RaiseGate();
 
       if (StateTimer.check()){
-        LowerLever();
+        LowerGate();
         StateTimer.reset();
 
         if (Basket==BAD){
@@ -216,7 +216,7 @@ void ExecutePrimarySM(){
     case HeadingBackFromBadBasket:{
       if (StateTimer.check()){
         MoveForward();
-        if (detectLine()==RED){
+        if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
           followRedLine();
           State = FollowingRedTapeToStudio;
         }
@@ -227,7 +227,7 @@ void ExecutePrimarySM(){
     case HeadingBackFromGoodBasket:{
       if (StateTimer.check()){
         MoveForward();
-        if (detectLine()==RED){
+        if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
           State = IgnoreRedTapeToStudio;
           StateTimer.reset();
         }
@@ -236,7 +236,7 @@ void ExecutePrimarySM(){
     }
 
     case FollowingRedTapeToStudio:{
-      int beacon_val =  getBeaconSignal(beaconPin_in);
+      int beacon_val = analogRead(beaconPin_in);
       if (beaconStrongEnough(beacon_val)){
         StopMotors();
         State = AtStudioDisoriented;
@@ -247,7 +247,7 @@ void ExecutePrimarySM(){
     default:
       /* stop robot */
       StopMotors();
-      StopLever();
+      StopGate();
       break;
   }
 
