@@ -132,15 +132,15 @@ void rotateBetaBad(){  // Basket
 }
 
 void RaiseGate(){
-    // TODO.
     // Raise ball gate.
-    digitalWrite(gateServoPin_out, HIGH);
+    int angle_degrees = 90;
+    GateServo.write(angle_degrees);
 }
 
 void LowerGate(){
-    // TODO.
     // Lower ball gate.
-    digitalWrite(gateServoPin_out, LOW);
+    int angle_degrees = 90;
+    GateServo.write(angle_degrees);
 }
 
 void StopGate(){

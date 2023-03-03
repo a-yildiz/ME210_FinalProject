@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <Servo.h>
+
 
 /* Pins (Don't forget to set pinMode in setup) */ 
 int potPin_in = A0;
@@ -6,7 +8,7 @@ int beaconPin_in = A1;
 int lineLeftPin_in = A2;
 int lineRightPin_in = A3;
 
-int gateServoPin_out = A4;
+// int gateServoPin_out = A4;
 int gateServoPin_pwm_out = 11;
 
 int spstPin_in = 4;

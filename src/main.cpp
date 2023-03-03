@@ -20,6 +20,9 @@ int no_of_waves = 0;
 int pot_reading = 512;  // [out of 1023]
 int beacon_reading = 1023;
 
+Servo GateServo;
+int servo_angle = 0;
+
 Metro StateTimer(1000);
 Metro WaveTimer(2000);
 Metro MisssionTimer(130000);  // Mission time: 2m 10s = 130s = 130000ms
@@ -49,7 +52,7 @@ void setup() {
   pinMode(beaconPin_in, INPUT);
   pinMode(lineLeftPin_in, INPUT);
   pinMode(lineRightPin_in, INPUT);
-  pinMode(gateServoPin_out, OUTPUT);
+  // pinMode(gateServoPin_out, OUTPUT);
 
   pinMode(spstPin_in, INPUT);
   pinMode(LEDPin_out, OUTPUT);
@@ -65,7 +68,9 @@ void setup() {
   pinMode(bridge2Pin_dir_out, OUTPUT);
 
 
-  digitalWrite(gateServoPin_out, LOW);
+  // digitalWrite(gateServoPin_out, LOW);
+
+  GateServo.attach(gateServoPin_pwm_out);
 
 
   ITimer1.init();
