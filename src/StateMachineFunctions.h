@@ -25,11 +25,28 @@ void MoveForward(){
     // Rotate both motors at equal torque.
 }
 
+void followRedLine(){
+    // TODO.
+    // Controller to follow red tape line.
+}
+
+lines detectLine(){
+    // TODO.
+    // Return WHITE, BLACK or RED; sensed from the IR line sensor.
+    return WHITE;
+}
+
 int getBeaconSignal(int beaconPin_in){
     // TODO. 
     // Read from the Beacon pin:
     // beacon_reading = ...
     return 0;
+}
+
+bool beaconStrongEnough(int beaconVal){
+    // TODO.
+    // Check what a strong beacon level is.
+    return false;
 }
 
 void rotateAlphaGood(){
@@ -50,4 +67,34 @@ void rotateBetaGood(){
 void rotateBetaBad(){
     // TODO.
     // Rotate ABetaBad amount through motors.
+}
+
+void RaiseLever(){
+    // TODO.
+    // Raise ball lever.
+}
+
+void LowerLever(){
+    // TODO.
+    // Lower ball lever.
+}
+
+void StopLever(){
+    // TODO.
+    // Stop ball lever.
+}
+
+void WaveUpAtAudience(){
+    // TODO.
+    // Raise arm to wave at audiance.
+}
+
+void WaveDownAtAudience(){
+    // TODO.
+    // Lower arm to wave at audiance.
+}
+
+void StopWave(){
+    // TODO.
+    // Stop arm that waves.
 }

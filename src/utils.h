@@ -1,6 +1,8 @@
 #include <Arduino.h>
 
 /* Constants */
+
+enum lines   {WHITE, BLACK, RED};
 enum baskets {GOOD, BAD};
 enum actions {MOVE, WAIT};
 enum states  {AtStudioDisoriented, 
@@ -10,21 +12,23 @@ enum states  {AtStudioDisoriented,
               HeadingToBadBasket,
               HeadingToGoodBasket,
               FollowingRedTapeToBasket,
-              IgnoreRedTape,
+              IgnoreRedTapeToBasket,
+              IgnoreRedTapeToStudio,
               DumpingBalls,
               HeadingBackFromBadBasket,
               HeadingBackFromGoodBasket,
-              FollowingRedTapeToStudio};
+              FollowingRedTapeToStudio,
+              MissionEnd};
 
 
-uint8_t COLOR_BLANK[3] =     {LOW, LOW, LOW};
-uint8_t COLOR_RED[3] =       {HIGH, LOW, LOW};
-uint8_t COLOR_GREEN[3] =     {LOW, HIGH, LOW};
-uint8_t COLOR_BLUE[3] =      {LOW, LOW, HIGH};
-uint8_t COLOR_YELLOW[3] =    {HIGH, HIGH, LOW};
-uint8_t COLOR_CYAN[3] =      {LOW, HIGH, HIGH};
-uint8_t COLOR_PURPLE[3] =    {HIGH, LOW, HIGH};
-uint8_t COLOR_WHITE[3] =     {HIGH, HIGH, HIGH};
+uint8_t RGB_BLANK[3]  = {LOW, LOW, LOW};
+uint8_t RGB_RED[3]    = {HIGH, LOW, LOW};
+uint8_t RGB_GREEN[3]  = {LOW, HIGH, LOW};
+uint8_t RGB_BLUE[3]   = {LOW, LOW, HIGH};
+uint8_t RGB_YELLOW[3] = {HIGH, HIGH, LOW};
+uint8_t RGB_CYAN[3]   = {LOW, HIGH, HIGH};
+uint8_t RGB_PURPLE[3] = {HIGH, LOW, HIGH};
+uint8_t RGB_WHITE[3]  = {HIGH, HIGH, HIGH};
 
 #define BAD_POT_CUTOFF     102  // [out of 1024]
 #define GOOD_POT_CUTOFF    922  // [out of 1024]

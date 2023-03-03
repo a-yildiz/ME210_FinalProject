@@ -22,29 +22,39 @@ int RGB_BLUE_PIN = 9;
 /* Initializations */
 states State = AtStudioDisoriented;
 baskets Basket = GOOD;
-actions Action = WAIT;
+actions Action = MOVE;
 
 char Studio_ID = 'A';
 bool LED_state = HIGH;
 int LED_freq = 10;   // [Hz]
+int no_of_waves = 0;
 
 int pot_reading = 512;  // [out of 1023]
 int beacon_reading = 1023;
 
-Metro PotTimer(1000);
-Metro AlphaTimer(1000);
+Metro StateTimer(1000);
+Metro WaveTimer(2000);
+Metro MisssionTimer(130000);  // Mission time: 2m 10s = 130s = 130000ms
 
 
 /* Function Definitions */
+void ExecutePrimarySM();
+void ExecutePowerSM();
+void ExecuteRGBLightSM();
+void ExecuteSafetySM();
+
 void LEDTimerHandler();
+void DummyHandler();
 void updateBasketandAction();
 void setRGBcolor(uint8_t color[]);
 
+
+
 void setup() {
   /* DEBUG */
-  // Serial.begin(9600);
-  // while(!Serial);
-  // Serial.println("Hello, world!");
+  Serial.begin(9600);
+  while(!Serial);
+  Serial.println("Hello, world!");
 
   /* Pins */
   pinMode(potPin_in, INPUT);
@@ -60,28 +70,38 @@ void setup() {
 
   ITimer1.init();
   ITimer1.attachInterrupt(LED_freq, LEDTimerHandler);
+
+  WaveTimer.reset();
+  MisssionTimer.reset();
 }
-
-
 
 
 
 void loop() {
   /* DEBUG */
-  // setRGBcolor(COLOR_PURPLE);
-  // delay(200);
-  // setRGBcolor(COLOR_YELLOW);
-  // delay(200);
-  // setRGBcolor(COLOR_CYAN);
-  // delay(200);
+  PrintVar("State", State);
+  // PrintVar("Action", Action);
 
   /* Detect Studio A or B from IR sensor. */
   Studio_ID = detectStudioID(spstPin_in);
 
   /* Set LED brightness w.r.t. potentiometer reading. */
-  ITimer1.setFrequency(LED_freq, LEDTimerHandler);
+  // ITimer1.setFrequency(LED_freq, LEDTimerHandler);
   
-  /* State Machine */
+  /* State Machines */
+  ExecutePrimarySM();
+  ExecutePowerSM();
+  ExecuteRGBLightSM();
+  ExecuteSafetySM();
+
+}
+
+void DummyHandler(){
+  Serial.println("Dummy Here");
+}
+
+
+void ExecutePrimarySM(){
   switch(State) {
     case AtStudioDisoriented:{
       if (PotentiometerInWait(Action)) {
@@ -96,7 +116,7 @@ void loop() {
       if (StrongestBeaconSignalFound(beacon_reading, new_beacon_reading)) {
         StopMotors();
         State = AtStudioOriented;
-        PotTimer.reset();
+        StateTimer.reset();
       }
       beacon_reading = new_beacon_reading;
       break;
@@ -106,12 +126,12 @@ void loop() {
       int new_pot_reading = analogRead(potPin_in);
 
       // Reset timer if the pot reading has changed.
-      if (!approx_equal(pot_reading, new_pot_reading)) {PotTimer.reset();}
+      if (!approx_equal(pot_reading, new_pot_reading)) {StateTimer.reset();}
 
       // If 1 sec has passed since last pot reading change, then proceed to the chosen basket.
-      if (PotTimer.check() && Action==MOVE){
+      if (StateTimer.check() && Action==MOVE){
         State = ChooseBasket;
-        AlphaTimer.reset();
+        StateTimer.reset();
       }
       pot_reading = new_pot_reading;
       break;
@@ -120,64 +140,193 @@ void loop() {
     case ChooseBasket:{
       if (Basket==GOOD){
         rotateAlphaGood();
-        if (AlphaTimer.check()) {State = HeadingToGoodBasket;}  // Stop rotation after a duration.
+        if (StateTimer.check()) {State = HeadingToGoodBasket;}  // Stops rotation after a duration.
       }
       else {
         rotateAlphaBad();
-        if (AlphaTimer.check()) {State = HeadingToBadBasket;}   // Stop rotation after a duration.
+        if (StateTimer.check()) {State = HeadingToBadBasket;}   // Stops rotation after a duration.
       }
       break;
     }
 
     case HeadingToBadBasket:{
       MoveForward();
-      // code block
+      if (detectLine()==RED){
+        State = FollowingRedTapeToBasket;
+      }
       break;
     }
 
     case HeadingToGoodBasket:{
       MoveForward();
-      // code block
+      if (detectLine()==RED){
+        State = IgnoreRedTapeToBasket;
+        StateTimer.reset();
+      }
       break;
     }
 
     case FollowingRedTapeToBasket:{
-      // code block
+      followRedLine();
+      if (detectLine()==BLACK){
+        State = DumpingBalls;
+        StateTimer.reset();
+      }
       break;
     }
 
-    case IgnoreRedTape:{
-      // code block
+    case IgnoreRedTapeToBasket:{
+      if (StateTimer.check()){
+        if (detectLine()==RED){
+          State = FollowingRedTapeToBasket;
+        }
+      }
+      break;
+    }
+
+    case IgnoreRedTapeToStudio:{
+      if (StateTimer.check()){
+        if (detectLine()==RED){
+          State = FollowingRedTapeToStudio;
+        }
+      }
       break;
     }
 
     case DumpingBalls:{
-      // code block
+      StopMotors();
+      RaiseLever();
+
+      if (StateTimer.check()){
+        LowerLever();
+        StateTimer.reset();
+
+        if (Basket==BAD){
+          rotateBetaBad();
+          State = HeadingBackFromBadBasket;
+        }
+        else {
+          rotateBetaGood();
+          State = HeadingBackFromGoodBasket;
+        }
+      }
       break;
     }
 
     case HeadingBackFromBadBasket:{
-      // code block
+      if (StateTimer.check()){
+        MoveForward();
+        if (detectLine()==RED){
+          followRedLine();
+          State = FollowingRedTapeToStudio;
+        }
+      }
       break;
     }
 
     case HeadingBackFromGoodBasket:{
-      // code block
+      if (StateTimer.check()){
+        MoveForward();
+        if (detectLine()==RED){
+          State = IgnoreRedTapeToStudio;
+          StateTimer.reset();
+        }
+      }
       break;
     }
 
     case FollowingRedTapeToStudio:{
-        // code block
-        break;
+      int beacon_val =  getBeaconSignal(beaconPin_in);
+      if (beaconStrongEnough(beacon_val)){
+        StopMotors();
+        State = AtStudioDisoriented;
       }
-
-
+      break;
+    }
 
     default:
-    /* do nothing */
+      /* stop robot */
+      StopMotors();
+      StopLever();
       break;
   }
 
+
+}
+
+
+void ExecutePowerSM(){
+  // Wave at audiance when beginning mission.
+  if (!WaveTimer.check()){
+    if (no_of_waves%2 == 1){WaveUpAtAudience();}
+    else {WaveDownAtAudience();}
+  }
+  else if (no_of_waves <= 5){
+    WaveTimer.reset();
+    no_of_waves++;
+  }
+  else {
+    StopWave();
+  }
+
+  // Stop 
+  if (MisssionTimer.check() and State!=MissionEnd){
+    State = MissionEnd;
+    WaveTimer.reset();
+  }
+}
+
+
+void ExecuteRGBLightSM(){
+  switch (State) {
+    case AtStudioDisoriented:
+    case AtStudioOrienting:
+    case AtStudioOriented:
+    case DumpingBalls:
+    case MissionEnd:
+    case ChooseBasket:
+      setRGBcolor(RGB_BLANK);
+      break;
+
+    case FollowingRedTapeToBasket:
+    case FollowingRedTapeToStudio:
+      setRGBcolor(RGB_RED);
+      break;
+
+    case HeadingToGoodBasket:
+      setRGBcolor(RGB_BLUE);
+      break;
+
+    case HeadingToBadBasket:
+      setRGBcolor(RGB_PURPLE);
+      break;
+
+    case HeadingBackFromBadBasket:
+      setRGBcolor(RGB_YELLOW);
+      break;
+
+    case HeadingBackFromGoodBasket:
+      setRGBcolor(RGB_CYAN);
+      break;
+
+    case IgnoreRedTapeToBasket:
+      setRGBcolor(RGB_YELLOW);
+      break;
+
+    case IgnoreRedTapeToStudio:
+      setRGBcolor(RGB_WHITE);
+      break;      
+
+    default:
+      break;
+  }
+}
+
+
+void ExecuteSafetySM(){
+  // TODO.
+  // This SM should enforce state transitions of rotating in the case that the red tape
+  // line is not detected while commencing towards either baskets from the studio.
 }
 
 
@@ -193,7 +342,6 @@ void LEDTimerHandler(){
     analogWrite(LEDPin_out, 0);
   }
 }
-
 
 
 void updateBasketandAction(){
@@ -225,6 +373,7 @@ void updateBasketandAction(){
     LED_freq = 10; // [Hz]
   }
 }
+
 
 void setRGBcolor(uint8_t color[]){
   digitalWrite(RGB_RED_PIN, color[0]);
