@@ -1,6 +1,6 @@
 #include <StateMachineFunctions.h>
 
-#define USE_TIMER_1     true
+#define USE_TIMER_2     true
 #include <TimerInterrupt.h>
 
 #include <Metro.h>
@@ -20,7 +20,6 @@ int no_of_waves = 0;
 int pot_reading = 512;  // [out of 1023]
 int beacon_reading = 1023;
 
-Servo GateServo;
 int servo_angle = 0;
 
 Metro StateTimer(1000);
@@ -73,8 +72,8 @@ void setup() {
   GateServo.attach(gateServoPin_pwm_out);
 
 
-  ITimer1.init();
-  ITimer1.attachInterrupt(LED_freq, LEDTimerHandler);
+  ITimer2.init();
+  ITimer2.attachInterrupt(LED_freq, LEDTimerHandler);
 
   WaveTimer.reset();
   MisssionTimer.reset();
@@ -92,7 +91,7 @@ void loop() {
   Studio_ID = detectStudioID(spstPin_in);
 
   /* Set LED brightness w.r.t. potentiometer reading. */
-  // ITimer1.setFrequency(LED_freq, LEDTimerHandler);
+  // ITimer2.setFrequency(LED_freq, LEDTimerHandler);
   
   /* State Machines */
   ExecutePrimarySM();

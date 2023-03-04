@@ -27,6 +27,8 @@ int bridge2Pin_dir_out = 13;
 
 /* Constants */
 
+Servo GateServo;
+
 enum lines   {WHITE, BLACK, RED};
 enum baskets {GOOD, BAD};
 enum actions {MOVE, WAIT};
