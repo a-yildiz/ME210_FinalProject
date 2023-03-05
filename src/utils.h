@@ -73,11 +73,11 @@ void PrintVar(String label, String var){
 }
 
 void PrintVar(String label, int var){
-  Serial.println("Value of " + label + ": " + var);
+  Serial.println("Value of " + label + ": " + String(var));
 }
 
 void PrintVar(String label, float var){
-  Serial.println("Value of " + label + ": " + var);
+  Serial.println("Value of " + label + ": " + String(var));
 }
 
 char detectStudioID(int spstPin_in){

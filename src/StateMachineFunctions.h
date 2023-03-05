@@ -139,7 +139,7 @@ void RaiseGate(){
 
 void LowerGate(){
     // Lower ball gate.
-    int angle_degrees = 90;
+    int angle_degrees = 0;
     GateServo.write(angle_degrees);
 }
 

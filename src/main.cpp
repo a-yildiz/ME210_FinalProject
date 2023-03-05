@@ -85,7 +85,7 @@ void loop() {
   /* DEBUG */
   // PrintVar("State", State);
   // PrintVar("Action", Action);
-  delay(500);
+  // delay(500);
 
   /* Detect Studio A or B from IR sensor. */
   Studio_ID = detectStudioID(spstPin_in);
@@ -101,6 +101,19 @@ void loop() {
 
   int beacon_val =  analogRead(beaconPin_in);
   PrintVar("beacon val", beacon_val);
+
+  // RaiseGate();
+  // LowerGate();
+  
+  GateServo.write(180);
+  delay(500);
+  GateServo.write(60);
+  delay(500);
+  GateServo.write(90);
+  delay(500);
+  GateServo.write(-180);
+  delay(500);
+
 
 }
 
