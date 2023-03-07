@@ -25,45 +25,61 @@ lines detectLine(int pin){
 void StartRotatingCoM(){
     // Left motor turns clockwise.
     // Right motor turns counter-clockwise.
-    digitalWrite(bridge1Pin_dir_out, HIGH);
-    digitalWrite(bridge2Pin_dir_out, LOW);
-
-    analogWrite(bridge1Pin_pwm_out, 100);
-    analogWrite(bridge2Pin_pwm_out, 100);
+    digitalWrite(DIR_A_1, !FORWARD_A);
+    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
+    speed_A = default_speed;
+    speed_B = default_speed;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
 }
 
 void StopMotors(){
     // Stop both motors.
-    digitalWrite(bridge1Pin_dir_out, LOW);
-    digitalWrite(bridge2Pin_dir_out, LOW);
-
-    analogWrite(bridge1Pin_pwm_out, 0);
-    analogWrite(bridge2Pin_pwm_out, 0);
+    digitalWrite(DIR_A_1, HIGH);
+    digitalWrite(DIR_A_2, HIGH);
+    digitalWrite(DIR_B_1, HIGH);
+    digitalWrite(DIR_B_2, HIGH);
+    speed_A = 255;
+    speed_B = 255;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
 }
 
 void MoveForward(){
     // Rotate both motors at equal torque.
-    digitalWrite(bridge1Pin_dir_out, HIGH);
-    digitalWrite(bridge2Pin_dir_out, HIGH);
 
-    analogWrite(bridge1Pin_pwm_out, 100);
-    analogWrite(bridge2Pin_pwm_out, 100);
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, !FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
+    speed_A = default_speed;
+    speed_B = default_speed;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
 }
 
 void TurnRight(){
-    digitalWrite(bridge1Pin_dir_out, HIGH);
-    digitalWrite(bridge2Pin_dir_out, LOW);
-
-    analogWrite(bridge1Pin_pwm_out, 50);
-    analogWrite(bridge2Pin_pwm_out, 50);
+    digitalWrite(DIR_A_1, !FORWARD_A);
+    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_B_1, !FORWARD_B);
+    digitalWrite(DIR_B_2, FORWARD_B);
+    speed_A = default_speed;
+    speed_B = default_speed;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
 }
 
 void TurnLeft(){
-    digitalWrite(bridge1Pin_dir_out, LOW);
-    digitalWrite(bridge2Pin_dir_out, HIGH);
-
-    analogWrite(bridge1Pin_pwm_out, 50);
-    analogWrite(bridge2Pin_pwm_out, 50);
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, !FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
+    speed_A = default_speed;
+    analogWrite(PWM_A, speed_A);
+    speed_B = default_speed;
+    analogWrite(PWM_B, speed_B);
 }
 
 void followRedLine(){
@@ -97,49 +113,61 @@ bool beaconStrongEnough(int beaconVal){
 
 void rotateAlphaGood(){  // Studio
     // Rotate AlphaGood amount through motors.
-    digitalWrite(bridge1Pin_dir_out, HIGH);
-    digitalWrite(bridge2Pin_dir_out, LOW);
-
-    analogWrite(bridge1Pin_pwm_out, 75);
-    analogWrite(bridge2Pin_pwm_out, 125);
+    digitalWrite(DIR_A_1, !FORWARD_A);
+    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_B_1, !FORWARD_B);
+    digitalWrite(DIR_B_2, FORWARD_B);
+    speed_A = default_speed;
+    speed_B = default_speed;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
 }
 
 void rotateAlphaBad(){  // Studio
     // Rotate AlphaBad amount through motors.
-    digitalWrite(bridge1Pin_dir_out, HIGH);
-    digitalWrite(bridge2Pin_dir_out, LOW);
-
-    analogWrite(bridge1Pin_pwm_out, 60);
-    analogWrite(bridge2Pin_pwm_out, 120);
+    digitalWrite(DIR_A_1, !FORWARD_A);
+    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_B_1, !FORWARD_B);
+    digitalWrite(DIR_B_2, FORWARD_B);
+    speed_A = default_speed;
+    speed_B = default_speed;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
 }
 
 void rotateBetaGood(){  // Basket
     // Rotate BetaGood amount through motors.
-    digitalWrite(bridge1Pin_dir_out, LOW);
-    digitalWrite(bridge2Pin_dir_out, HIGH);
-
-    analogWrite(bridge1Pin_pwm_out, 100);
-    analogWrite(bridge2Pin_pwm_out, 200);
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, !FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
+    speed_A = default_speed;
+    analogWrite(PWM_A, speed_A);
+    speed_B = default_speed;
+    analogWrite(PWM_B, speed_B);
 }
 
 void rotateBetaBad(){  // Basket
     // Rotate ABetaBad amount through motors.
-    digitalWrite(bridge1Pin_dir_out, LOW);
-    digitalWrite(bridge2Pin_dir_out, HIGH);
-
-    analogWrite(bridge1Pin_pwm_out, 80);
-    analogWrite(bridge2Pin_pwm_out, 160);
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, !FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
+    speed_A = default_speed;
+    analogWrite(PWM_A, speed_A);
+    speed_B = default_speed;
+    analogWrite(PWM_B, speed_B);
 }
 
 void RaiseGate(){
     // Raise ball gate.
-    int angle_degrees = 90;
+    int angle_degrees = 0;
     GateServo.write(angle_degrees);
 }
 
 void LowerGate(){
     // Lower ball gate.
-    int angle_degrees = 0;
+    int angle_degrees = 90;
     GateServo.write(angle_degrees);
 }
 

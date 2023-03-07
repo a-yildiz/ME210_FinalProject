@@ -2,27 +2,33 @@
 #include <Servo.h>
 
 
-/* Pins (Don't forget to set pinMode in setup) */ 
+/* Pins (Don't forget to set pinMode in setup) --> remaining pin: 9 */ 
 int potPin_in = A0;
 int beaconPin_in = A1;
 int lineLeftPin_in = A2;
 int lineRightPin_in = A3;
 
-// int gateServoPin_out = A4;
+int RGB_RED_PIN = 8;
+int RGB_GREEN_PIN = 12;
+int RGB_BLUE_PIN = 13;
+
+int LEDPin_out = 10;
 int gateServoPin_pwm_out = 11;
 
-int spstPin_in = 4;
-int LEDPin_out = 6;
+/* Motor Pins and Params */
+int DIR_B_1 = 2;
+int PWM_B   = 3;
+int DIR_B_2 = 4;
+int DIR_A_1 = 5;
+int PWM_A   = 6;
+int DIR_A_2 = 7;
 
-int RGB_RED_PIN = 7;
-int RGB_GREEN_PIN = 8;
-int RGB_BLUE_PIN = 9;
+int speed_A = 0;
+int speed_B = 0;
+int default_speed = 150;
 
-int bridge1Pin_pwm_out = 3;   // Left motor in driving direction
-int bridge2Pin_pwm_out = 5;   // Right motor in driving direction
-
-int bridge1Pin_dir_out = 12;
-int bridge2Pin_dir_out = 13;
+bool FORWARD_A = true;
+bool FORWARD_B = false;
 
 
 /* Constants */

@@ -51,25 +51,33 @@ void setup() {
   pinMode(beaconPin_in, INPUT);
   pinMode(lineLeftPin_in, INPUT);
   pinMode(lineRightPin_in, INPUT);
-  // pinMode(gateServoPin_out, OUTPUT);
-
-  pinMode(spstPin_in, INPUT);
-  pinMode(LEDPin_out, OUTPUT);
 
   pinMode(RGB_RED_PIN, OUTPUT);
   pinMode(RGB_GREEN_PIN, OUTPUT);
   pinMode(RGB_BLUE_PIN, OUTPUT);
 
-  pinMode(bridge1Pin_pwm_out, OUTPUT);
-  pinMode(bridge2Pin_pwm_out, OUTPUT);
+  pinMode(LEDPin_out, OUTPUT);
 
-  pinMode(bridge1Pin_dir_out, OUTPUT);
-  pinMode(bridge2Pin_dir_out, OUTPUT);
-
-
-  // digitalWrite(gateServoPin_out, LOW);
-
+  /* Servo Boot */
   GateServo.attach(gateServoPin_pwm_out);
+  GateServo.write(0);
+
+  /* Motor Boot */
+  pinMode(DIR_A_1, OUTPUT);
+  pinMode(DIR_A_2, OUTPUT);
+  digitalWrite(DIR_A_1, LOW);
+  digitalWrite(DIR_A_2, LOW);
+  pinMode(PWM_A, OUTPUT);
+  analogWrite(PWM_A, speed_A);
+  pinMode(DIR_B_1, OUTPUT);
+  pinMode(DIR_B_2, OUTPUT);
+  digitalWrite(DIR_B_1, LOW);
+  digitalWrite(DIR_B_2, LOW);
+  pinMode(PWM_B, OUTPUT);
+  analogWrite(PWM_B, speed_B);
+
+
+
 
 
   ITimer2.init();
@@ -88,32 +96,52 @@ void loop() {
   // delay(500);
 
   /* Detect Studio A or B from IR sensor. */
-  Studio_ID = detectStudioID(spstPin_in);
+  // Studio_ID = detectStudioID(spstPin_in);
 
-  /* Set LED brightness w.r.t. potentiometer reading. */
-  // ITimer2.setFrequency(LED_freq, LEDTimerHandler);
+  // /* Set LED brightness w.r.t. potentiometer reading. */
+  // // ITimer2.setFrequency(LED_freq, LEDTimerHandler);
   
+  // RaiseGate();
+  // LowerGate();
+  
+  // GateServo.write(180);
+  // delay(500);
+  // GateServo.write(60);
+  // delay(500);
+  // GateServo.write(90);
+  // delay(500);
+  // GateServo.write(-180);
+
+
   /* State Machines */
   ExecutePrimarySM();
   ExecuteRGBLightSM();
   // ExecutePowerSM();
   // ExecuteSafetySM();
 
+
+
   int beacon_val =  analogRead(beaconPin_in);
   PrintVar("beacon val", beacon_val);
 
-  // RaiseGate();
-  // LowerGate();
-  
-  GateServo.write(180);
-  delay(500);
-  GateServo.write(60);
-  delay(500);
-  GateServo.write(90);
-  delay(500);
-  GateServo.write(-180);
-  delay(500);
+  PrintVar("pot reading", pot_reading);
+  PrintVar("state id", String(State));
 
+  // delay(2000);
+  // GateServo.write(0);
+  // Serial.println(0);
+
+  // delay(2000);
+  // GateServo.write(60);
+  // Serial.println(60);
+
+  // delay(2000);
+  // GateServo.write(90);
+  // Serial.println(90);
+
+  // delay(2000);
+  // GateServo.write(-180);
+  // Serial.println(-180);
 
 }
 
