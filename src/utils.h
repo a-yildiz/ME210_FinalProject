@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Servo.h>
+#include <Metro.h>
 
 
 /* Pins (Don't forget to set pinMode in setup) --> remaining pin: 9 */ 
@@ -25,6 +26,10 @@ int DIR_A_2 = 7;
 
 int speed_A = 0;
 int speed_B = 0;
+
+int PWM_OFFSET_A = 0;
+int PWM_OFFSET_B = -30;
+
 int default_speed = 150;
 
 bool FORWARD_A = true;
@@ -63,8 +68,8 @@ uint8_t RGB_CYAN[3]   = {LOW, HIGH, HIGH};
 uint8_t RGB_PURPLE[3] = {HIGH, LOW, HIGH};
 uint8_t RGB_WHITE[3]  = {HIGH, HIGH, HIGH};
 
-#define BAD_POT_CUTOFF     102  // [out of 1024]
-#define GOOD_POT_CUTOFF    922  // [out of 1024]
+#define GOOD_POT_CUTOFF     102  // [out of 1024]
+#define BAD_POT_CUTOFF    922  // [out of 1024]
 
 
 
@@ -74,16 +79,25 @@ bool inRange(int item, int lower, int upper){
   return (item <= upper) && (item >= lower);
 }
 
-void PrintVar(String label, String var){
-  Serial.println("Value of " + label + ": " + var);
+void PrintVar(String label, String var, Metro& timer){
+  if (timer.check()){
+    timer.reset();
+    Serial.println("Value of " + label + ": " + var);
+  }
 }
 
-void PrintVar(String label, int var){
-  Serial.println("Value of " + label + ": " + String(var));
+void PrintVar(String label, int var, Metro& timer){
+  if (timer.check()){
+    timer.reset();
+    Serial.println("Value of " + label + ": " + String(var));
+  }
 }
 
-void PrintVar(String label, float var){
-  Serial.println("Value of " + label + ": " + String(var));
+void PrintVar(String label, float var, Metro& timer){
+  if (timer.check()){
+    timer.reset();
+    Serial.println("Value of " + label + ": " + String(var));
+  }
 }
 
 char detectStudioID(int spstPin_in){

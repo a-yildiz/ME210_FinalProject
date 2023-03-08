@@ -25,12 +25,12 @@ lines detectLine(int pin){
 void StartRotatingCoM(){
     // Left motor turns clockwise.
     // Right motor turns counter-clockwise.
-    digitalWrite(DIR_A_1, !FORWARD_A);
-    digitalWrite(DIR_A_2, FORWARD_A);
-    digitalWrite(DIR_B_1, FORWARD_B);
-    digitalWrite(DIR_B_2, !FORWARD_B);
-    speed_A = default_speed;
-    speed_B = default_speed;
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, !FORWARD_A);
+    digitalWrite(DIR_B_1, !FORWARD_B);
+    digitalWrite(DIR_B_2, FORWARD_B);
+    speed_A = default_speed + PWM_OFFSET_A;
+    speed_B = default_speed + PWM_OFFSET_B;
     analogWrite(PWM_A, speed_A);
     analogWrite(PWM_B, speed_B);
 }
@@ -49,24 +49,35 @@ void StopMotors(){
 
 void MoveForward(){
     // Rotate both motors at equal torque.
-
     digitalWrite(DIR_A_1, FORWARD_A);
     digitalWrite(DIR_A_2, !FORWARD_A);
     digitalWrite(DIR_B_1, FORWARD_B);
     digitalWrite(DIR_B_2, !FORWARD_B);
-    speed_A = default_speed;
-    speed_B = default_speed;
+    speed_A = default_speed + PWM_OFFSET_A;
+    speed_B = default_speed + PWM_OFFSET_B;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
+}
+
+void MoveBackward(){
+    // Rotate both motors at equal torque.
+    digitalWrite(DIR_A_1, !FORWARD_A);
+    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_B_1, !FORWARD_B);
+    digitalWrite(DIR_B_2, FORWARD_B);
+    speed_A = default_speed + PWM_OFFSET_A;
+    speed_B = default_speed + PWM_OFFSET_B;
     analogWrite(PWM_A, speed_A);
     analogWrite(PWM_B, speed_B);
 }
 
 void TurnRight(){
-    digitalWrite(DIR_A_1, !FORWARD_A);
-    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, !FORWARD_A);
     digitalWrite(DIR_B_1, !FORWARD_B);
     digitalWrite(DIR_B_2, FORWARD_B);
-    speed_A = default_speed;
-    speed_B = default_speed;
+    speed_A = default_speed + PWM_OFFSET_A;
+    speed_B = default_speed + PWM_OFFSET_B;
     analogWrite(PWM_A, speed_A);
     analogWrite(PWM_B, speed_B);
 }

@@ -1,9 +1,7 @@
 #include <StateMachineFunctions.h>
 
-#define USE_TIMER_2     true
-#include <TimerInterrupt.h>
-
-#include <Metro.h>
+// #define USE_TIMER_2     true
+// #include <TimerInterrupt.h>
 
 
 
@@ -22,20 +20,21 @@ int beacon_reading = 1023;
 
 int servo_angle = 0;
 
+Metro PrintVarTimer(500);
 Metro StateTimer(1000);
 Metro WaveTimer(2000);
 Metro MisssionTimer(130000);  // Mission time: 2m 10s = 130s = 130000ms
 
 
 /* Function Definitions */
+void ExecuteLEDandPotSM();
 void ExecutePrimarySM();
 void ExecutePowerSM();
 void ExecuteRGBLightSM();
 void ExecuteSafetySM();
 
-void LEDTimerHandler();
-void DummyHandler();
-void updateBasketandAction();
+// void LEDTimerHandler();
+// void DummyHandler();
 void setRGBcolor(uint8_t color[]);
 
 
@@ -80,19 +79,22 @@ void setup() {
 
 
 
-  ITimer2.init();
-  ITimer2.attachInterrupt(LED_freq, LEDTimerHandler);
+  // ITimer2.init();
+  // ITimer2.attachInterrupt(LED_freq, LEDTimerHandler);
 
+  PrintVarTimer.reset();
+  StateTimer.reset();
   WaveTimer.reset();
   MisssionTimer.reset();
+  
 }
 
 
 
 void loop() {
   /* DEBUG */
-  // PrintVar("State", State);
-  // PrintVar("Action", Action);
+  // PrintVar("State", State, PrintVarTimer);
+  // PrintVar("Action", Action, PrintVarTimer);
   // delay(500);
 
   /* Detect Studio A or B from IR sensor. */
@@ -112,8 +114,12 @@ void loop() {
   // delay(500);
   // GateServo.write(-180);
 
+  PrintVar("State", State, PrintVarTimer);
+  PrintVar("Action", Action, PrintVarTimer);
+
 
   /* State Machines */
+  ExecuteLEDandPotSM();
   ExecutePrimarySM();
   ExecuteRGBLightSM();
   // ExecutePowerSM();
@@ -121,11 +127,10 @@ void loop() {
 
 
 
-  int beacon_val =  analogRead(beaconPin_in);
-  PrintVar("beacon val", beacon_val);
+  // int beacon_val =  analogRead(beaconPin_in);
+  // PrintVar("beacon val", beacon_val, PrintVarTimer);
 
-  PrintVar("pot reading", pot_reading);
-  PrintVar("state id", String(State));
+  // PrintVar("pot reading", pot_reading, PrintVarTimer);
 
   // delay(2000);
   // GateServo.write(0);
@@ -375,48 +380,52 @@ void ExecuteSafetySM(){
 }
 
 
-void LEDTimerHandler(){
-  updateBasketandAction();
+// void LEDTimerHandler(){
+//   ExecuteLEDandPotSM();
 
-  if (LED_state == HIGH){
-    LED_state = LOW;
-    analogWrite(LEDPin_out, map(pot_reading, 0, 1023, 0, 255));
-  }
-  else {
-    LED_state = HIGH;
-    analogWrite(LEDPin_out, 0);
-  }
-}
+//   if (LED_state == HIGH){
+//     LED_state = LOW;
+//     analogWrite(LEDPin_out, map(pot_reading, 0, 1023, 0, 255));
+//   }
+//   else {
+//     LED_state = HIGH;
+//     analogWrite(LEDPin_out, 0);
+//   }
+// }
 
 
-void updateBasketandAction(){
+void ExecuteLEDandPotSM(){
   // pot_reading = map(analogRead(potPin_in), 0, 1023, 0, 255);
   pot_reading = analogRead(potPin_in);  // [in range 0, 1023]
-  // PrintVar("Pot", pot_reading);
-  if (inRange(pot_reading, GOOD_POT_CUTOFF, 1023)){
+  if (inRange(pot_reading, BAD_POT_CUTOFF, 1023)){
     // Serial.println("C1");
-    Basket = GOOD;
+    Basket = BAD;
     Action = MOVE;
-    LED_freq = 10; // [Hz]
+    // LED_freq = 10; // [Hz]
+    LED_state = HIGH;
   }
-  else if (inRange(pot_reading, 512, GOOD_POT_CUTOFF)){
+  else if (inRange(pot_reading, 512, BAD_POT_CUTOFF)){
     // Serial.println("C2");
-    Basket = GOOD;
-    Action = WAIT;
-    LED_freq = 50; // [Hz]
-  }
-  else if (inRange(pot_reading, BAD_POT_CUTOFF, 512)){
-    // Serial.println("C3");
     Basket = BAD;
     Action = WAIT;
-    LED_freq = 50; // [Hz]
+    // LED_freq = 50; // [Hz]
+    LED_state = LOW;
+  }
+  else if (inRange(pot_reading, GOOD_POT_CUTOFF, 512)){
+    // Serial.println("C3");
+    Basket = GOOD;
+    Action = WAIT;
+    // LED_freq = 50; // [Hz]
+    LED_state = LOW;
   }
   else {
     // Serial.println("C4");
-    Basket = BAD;
+    Basket = GOOD;
     Action = MOVE;
-    LED_freq = 10; // [Hz]
+    // LED_freq = 10; // [Hz]
+    LED_state = HIGH;
   }
+  digitalWrite(LEDPin_out, LED_state);
 }
 
 
