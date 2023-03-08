@@ -6,7 +6,7 @@ bool PotentiometerInWait(actions a){
 
 bool StrongestBeaconSignalFound(int old_IR, int new_IR){
     // return (new_IR > old_IR);
-    int beacon_threshold = 100;
+    int beacon_threshold = 10;
     return (new_IR > beacon_threshold);
 }
 
@@ -22,15 +22,20 @@ lines detectLine(int pin){
     else {return WHITE;}
 }
 
-void StartRotatingCoM(){
+void StartRotatingCoM(int def_speed){
     // Left motor turns clockwise.
     // Right motor turns counter-clockwise.
+
+    // int def_speed = 140;
+    int offset_A = 0;
+    int offset_B = -30;    
+
     digitalWrite(DIR_A_1, FORWARD_A);
     digitalWrite(DIR_A_2, !FORWARD_A);
     digitalWrite(DIR_B_1, !FORWARD_B);
     digitalWrite(DIR_B_2, FORWARD_B);
-    speed_A = default_speed + PWM_OFFSET_A;
-    speed_B = default_speed + PWM_OFFSET_B;
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
     analogWrite(PWM_A, speed_A);
     analogWrite(PWM_B, speed_B);
 }
@@ -47,14 +52,29 @@ void StopMotors(){
     analogWrite(PWM_B, speed_B);
 }
 
+void MotorPulse(void (*func)(int), int speed){
+    // Rotate both motors at equal torque, for 200ms.
+    Metro tempTimer(50); // [ms]
+    tempTimer.reset();
+    while (!tempTimer.check()){
+        Serial.println("Pulsing!");
+        func(speed);
+    }
+    StopMotors();
+}
+
 void MoveForward(){
     // Rotate both motors at equal torque.
+    int def_speed = 200;
+    int offset_A = 0;
+    int offset_B = 0; 
+
     digitalWrite(DIR_A_1, FORWARD_A);
     digitalWrite(DIR_A_2, !FORWARD_A);
     digitalWrite(DIR_B_1, FORWARD_B);
     digitalWrite(DIR_B_2, !FORWARD_B);
-    speed_A = default_speed + PWM_OFFSET_A;
-    speed_B = default_speed + PWM_OFFSET_B;
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
     analogWrite(PWM_A, speed_A);
     analogWrite(PWM_B, speed_B);
 }

@@ -20,7 +20,9 @@ int beacon_reading = 1023;
 
 int servo_angle = 0;
 
-Metro PrintVarTimer(500);
+bool verbose_states = true;
+
+Metro PrintVarTimer(250);
 Metro StateTimer(1000);
 Metro WaveTimer(2000);
 Metro MisssionTimer(130000);  // Mission time: 2m 10s = 130s = 130000ms
@@ -41,9 +43,9 @@ void setRGBcolor(uint8_t color[]);
 
 void setup() {
   /* DEBUG */
-  Serial.begin(9600);
-  while(!Serial);
-  Serial.println("Hello, world!");
+  // Serial.begin(9600);
+  // while(!Serial);
+  // Serial.println("Hello, world!");
 
   /* Pins */
   pinMode(potPin_in, INPUT);
@@ -87,6 +89,8 @@ void setup() {
   WaveTimer.reset();
   MisssionTimer.reset();
   
+  StopMotors();
+
 }
 
 
@@ -114,17 +118,26 @@ void loop() {
   // delay(500);
   // GateServo.write(-180);
 
-  PrintVar("State", State, PrintVarTimer);
-  PrintVar("Action", Action, PrintVarTimer);
+  // PrintVar("State", State, PrintVarTimer);
+  // PrintVar("Action", Action, PrintVarTimer);
 
 
   /* State Machines */
   ExecuteLEDandPotSM();
   ExecutePrimarySM();
-  ExecuteRGBLightSM();
+  // ExecuteRGBLightSM();
   // ExecutePowerSM();
   // ExecuteSafetySM();
 
+  // PrintVar("beacon", analogRead(beaconPin_in), PrintVarTimer);
+  // if (beaconStrongEnough(analogRead(beaconPin_in))){
+  //   Serial.println("Stop");
+    // StopMotors();
+  // }
+  // else{
+  // StartRotatingCoM();
+  // }
+    
 
 
   // int beacon_val =  analogRead(beaconPin_in);
@@ -154,16 +167,21 @@ void loop() {
 void ExecutePrimarySM(){
   switch(State) {
     case AtStudioDisoriented:{
+      if (verbose_states) {PrintVar("State is AtStudioDisoriented", State, PrintVarTimer);}
       if (PotentiometerInWait(Action)) {
-        StartRotatingCoM();
+        MotorPulse(StartRotatingCoM, 255);
+        StartRotatingCoM(180);
         State = AtStudioOrienting;
       }
       break;
     }
 
     case AtStudioOrienting:{
+      // if (verbose_states) {PrintVar("State is AtStudioOrienting", State, PrintVarTimer);}
       int new_beacon_reading = analogRead(beaconPin_in);
+      // Serial.println(new_beacon_reading);
       if (beaconStrongEnough(new_beacon_reading)) {
+      // Serial.println("Stop. Beacon detected.");
         StopMotors();
         State = AtStudioOriented;
         StateTimer.reset();
@@ -173,6 +191,7 @@ void ExecutePrimarySM(){
     }
 
     case AtStudioOriented:{
+      if (verbose_states) {PrintVar("State is AtStudioOriented", State, PrintVarTimer);}
       int new_pot_reading = analogRead(potPin_in);
 
       // Reset timer if the pot reading has changed.
@@ -188,6 +207,7 @@ void ExecutePrimarySM(){
     }
 
     case ChooseBasket:{
+      if (verbose_states) {PrintVar("State is ChooseBasket", State, PrintVarTimer);}
       if (Basket==GOOD){
         rotateAlphaGood();
         if (StateTimer.check()) {State = HeadingToGoodBasket;}  // Stops rotation after a duration.
@@ -200,6 +220,7 @@ void ExecutePrimarySM(){
     }
 
     case HeadingToBadBasket:{
+      if (verbose_states) {PrintVar("State is HeadingToBadBasket", State, PrintVarTimer);}
       MoveForward();
       if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
         State = FollowingRedTapeToBasket;
@@ -208,6 +229,7 @@ void ExecutePrimarySM(){
     }
 
     case HeadingToGoodBasket:{
+      if (verbose_states) {PrintVar("State is HeadingToGoodBasket", State, PrintVarTimer);}
       MoveForward();
       if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
         State = IgnoreRedTapeToBasket;
@@ -217,6 +239,7 @@ void ExecutePrimarySM(){
     }
 
     case FollowingRedTapeToBasket:{
+      if (verbose_states) {PrintVar("State is FollowingRedTapeToBasket", State, PrintVarTimer);}
       followRedLine();
       if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
         State = DumpingBalls;
@@ -226,6 +249,7 @@ void ExecutePrimarySM(){
     }
 
     case IgnoreRedTapeToBasket:{
+      if (verbose_states) {PrintVar("State is IgnoreRedTapeToBasket", State, PrintVarTimer);}
       if (StateTimer.check()){
         if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
           State = FollowingRedTapeToBasket;
@@ -235,6 +259,7 @@ void ExecutePrimarySM(){
     }
 
     case IgnoreRedTapeToStudio:{
+      if (verbose_states) {PrintVar("State is IgnoreRedTapeToStudio", State, PrintVarTimer);}
       if (StateTimer.check()){
         if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
           State = FollowingRedTapeToStudio;
@@ -244,6 +269,7 @@ void ExecutePrimarySM(){
     }
 
     case DumpingBalls:{
+      if (verbose_states) {PrintVar("State is DumpingBalls", State, PrintVarTimer);}
       StopMotors();
       RaiseGate();
 
@@ -264,6 +290,7 @@ void ExecutePrimarySM(){
     }
 
     case HeadingBackFromBadBasket:{
+      if (verbose_states) {PrintVar("State is HeadingBackFromBadBasket", State, PrintVarTimer);}
       if (StateTimer.check()){
         MoveForward();
         if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
@@ -275,6 +302,7 @@ void ExecutePrimarySM(){
     }
 
     case HeadingBackFromGoodBasket:{
+      if (verbose_states) {PrintVar("State is HeadingBackFromGoodBasket", State, PrintVarTimer);}
       if (StateTimer.check()){
         MoveForward();
         if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
@@ -286,6 +314,7 @@ void ExecutePrimarySM(){
     }
 
     case FollowingRedTapeToStudio:{
+      if (verbose_states) {PrintVar("State is FollowingRedTapeToStudio", State, PrintVarTimer);}
       int beacon_val = analogRead(beaconPin_in);
       if (beaconStrongEnough(beacon_val)){
         StopMotors();

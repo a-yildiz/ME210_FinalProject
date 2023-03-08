@@ -28,9 +28,9 @@ int speed_A = 0;
 int speed_B = 0;
 
 int PWM_OFFSET_A = 0;
-int PWM_OFFSET_B = -30;
+int PWM_OFFSET_B = -30; // 0
 
-int default_speed = 150;
+int default_speed = 140;
 
 bool FORWARD_A = true;
 bool FORWARD_B = false;
