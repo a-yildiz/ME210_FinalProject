@@ -13,22 +13,44 @@ bool StrongestBeaconSignalFound(int old_IR, int new_IR){
 lines detectLine(int pin){
     // Return WHITE, BLACK or RED; sensed from the IR line sensor.
     // From floor to top of sensor where the wires connect: exactly 1 inch.
-    int margin    = 20;
-    int avg_white = 420;
-    int avg_red   = 570;
-    int avg_black = 750;
-    if (analogRead(pin) > avg_black-margin) {return BLACK;}
-    else if (analogRead(pin) > avg_red-margin) {return RED;}
-    else {return WHITE;}
+    int min_red   = 420;
+    int black_min = 500;
+    if (analogRead(pin) > black_min) {
+        return BLACK;}
+    else if (analogRead(pin) < min_red) {
+        return WHITE;}
+    else {
+        return RED;}
 }
 
-void StartRotatingCoM(int def_speed){
+String StringLineColor(int pin){
+    if (detectLine(pin)==BLACK){
+        return "BLACK";
+    }
+    else if (detectLine(pin)==RED){
+        return "RED";
+    }
+    else if (detectLine(pin)==WHITE){
+        return "WHITE";
+    }
+}
+
+void PrintLineColors(int pin_left, int pin_right){
+    Serial.println(
+        "Left_Line, Right_Line: "
+        +String(analogRead(pin_left))+" ("
+        +StringLineColor(pin_left)+") , "
+        +String(analogRead(pin_right))+" ("
+        +StringLineColor(pin_right)+")"
+        );
+}
+
+
+void StartRotatingCoM(int def_speed, int offset_B=0){
     // Left motor turns clockwise.
     // Right motor turns counter-clockwise.
 
-    // int def_speed = 140;
     int offset_A = 0;
-    int offset_B = -30;    
 
     digitalWrite(DIR_A_1, FORWARD_A);
     digitalWrite(DIR_A_2, !FORWARD_A);
@@ -52,22 +74,21 @@ void StopMotors(){
     analogWrite(PWM_B, speed_B);
 }
 
-void MotorPulse(void (*func)(int), int speed){
+void MotorPulse(void (*func)(int, int), int speed, int offset_B=0, int millis=50){
     // Rotate both motors at equal torque, for 200ms.
-    Metro tempTimer(50); // [ms]
+    Metro tempTimer(millis); // [ms]
     tempTimer.reset();
     while (!tempTimer.check()){
         Serial.println("Pulsing!");
-        func(speed);
+        func(speed, offset_B);
     }
     StopMotors();
 }
 
-void MoveForward(){
+void MoveForward(int def_speed=220, int offset_B=0){
     // Rotate both motors at equal torque.
-    int def_speed = 200;
+    // Serial.println("Going forward...");
     int offset_A = 0;
-    int offset_B = 0; 
 
     digitalWrite(DIR_A_1, FORWARD_A);
     digitalWrite(DIR_A_2, !FORWARD_A);
@@ -79,66 +100,82 @@ void MoveForward(){
     analogWrite(PWM_B, speed_B);
 }
 
-void MoveBackward(){
+void MoveBackward(int def_speed=220, int offset_B=0){
     // Rotate both motors at equal torque.
+    int offset_A = 0;
+
     digitalWrite(DIR_A_1, !FORWARD_A);
     digitalWrite(DIR_A_2, FORWARD_A);
     digitalWrite(DIR_B_1, !FORWARD_B);
     digitalWrite(DIR_B_2, FORWARD_B);
-    speed_A = default_speed + PWM_OFFSET_A;
-    speed_B = default_speed + PWM_OFFSET_B;
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
     analogWrite(PWM_A, speed_A);
     analogWrite(PWM_B, speed_B);
 }
 
-void TurnRight(){
+void TurnRight(int def_speed=220, int offset_B=0){
+    // Serial.println("Going right...");
+    int offset_A = 0;
+
     digitalWrite(DIR_A_1, FORWARD_A);
     digitalWrite(DIR_A_2, !FORWARD_A);
     digitalWrite(DIR_B_1, !FORWARD_B);
     digitalWrite(DIR_B_2, FORWARD_B);
-    speed_A = default_speed + PWM_OFFSET_A;
-    speed_B = default_speed + PWM_OFFSET_B;
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
     analogWrite(PWM_A, speed_A);
     analogWrite(PWM_B, speed_B);
 }
 
-void TurnLeft(){
+void TurnLeft(int def_speed=220, int offset_B=0){
+    // Serial.println("Going left...");
+    int offset_A = 0;
+
     digitalWrite(DIR_A_1, FORWARD_A);
     digitalWrite(DIR_A_2, !FORWARD_A);
     digitalWrite(DIR_B_1, FORWARD_B);
     digitalWrite(DIR_B_2, !FORWARD_B);
-    speed_A = default_speed;
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
     analogWrite(PWM_A, speed_A);
-    speed_B = default_speed;
     analogWrite(PWM_B, speed_B);
 }
 
-void followRedLine(){
+void followRedLine(int def_speed=220, int margin=0, int offset_B=0, String both_white_action="left"){
     /* Controller to follow red tape line. */
 
     // If Right Sensor and Left Sensor are at White color then it will call forword function
-    if((detectLine(lineRightPin_in)==WHITE) || (detectLine(lineLeftPin_in)==WHITE)){
-        MoveForward();
+    if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)!=RED)){
+        if (both_white_action=="left") {
+            return TurnLeft(def_speed-margin, offset_B);
+        }
+        else if (both_white_action=="right"){
+            return TurnRight(def_speed-margin, offset_B);
+        }
+        else {
+        return MoveForward(def_speed, offset_B);
+        }
     }
 
     // If Right Sensor is Red and Left Sensor is White then it will call turn Right function  
-    if((detectLine(lineRightPin_in)==RED) || (detectLine(lineLeftPin_in)==WHITE)){
-        TurnRight();
+    if((detectLine(lineRightPin_in)==RED) && (detectLine(lineLeftPin_in)!=RED)){
+        return TurnRight(def_speed-margin, offset_B);
     } 
 
     // If Right Sensor is White and Left Sensor is Red then it will call turn Left function
-    if((detectLine(lineRightPin_in)==WHITE) || (detectLine(lineLeftPin_in)==RED)){
-        TurnLeft();
+    if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)==RED)){
+        return TurnLeft(def_speed-margin, offset_B);
     }
 
     // If Right Sensor and Left Sensor are at Red color then it will call Stop function
-    if((detectLine(lineRightPin_in)==RED) || (detectLine(lineLeftPin_in)==RED)){
-        MoveForward();
+    if((detectLine(lineRightPin_in)==RED) && (detectLine(lineLeftPin_in)==RED)){
+        return MoveForward(def_speed, offset_B);
     }
 }
 
 bool beaconStrongEnough(int beaconVal){
-    int beacon_threshold = 100;
+    int beacon_threshold = 75;
     return (beaconVal > beacon_threshold);
 }
 

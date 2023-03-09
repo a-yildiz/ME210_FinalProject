@@ -6,7 +6,7 @@
 
 
 /* Initializations */
-states State = AtStudioDisoriented;
+states State =  AtStudioOrientDone; //Anil00_Init; //FollowingRedTapeToBasket; //AtStudioNotOriented;
 baskets Basket = GOOD;
 actions Action = MOVE;
 
@@ -21,6 +21,7 @@ int beacon_reading = 1023;
 int servo_angle = 0;
 
 bool verbose_states = true;
+int blind_follow_millis = 0;
 
 Metro PrintVarTimer(250);
 Metro StateTimer(1000);
@@ -43,9 +44,11 @@ void setRGBcolor(uint8_t color[]);
 
 void setup() {
   /* DEBUG */
-  // Serial.begin(9600);
-  // while(!Serial);
-  // Serial.println("Hello, world!");
+  if (verbose_states){
+    Serial.begin(9600);
+    while(!Serial);
+    Serial.println("Hello, world!");
+  }
 
   /* Pins */
   pinMode(potPin_in, INPUT);
@@ -90,6 +93,7 @@ void setup() {
   MisssionTimer.reset();
   
   StopMotors();
+  RaiseGate();
 
 }
 
@@ -122,10 +126,17 @@ void loop() {
   // PrintVar("Action", Action, PrintVarTimer);
 
 
-  /* State Machines */
+
+  // /* State Machines */
   ExecuteLEDandPotSM();
   ExecutePrimarySM();
-  // ExecuteRGBLightSM();
+  ExecuteRGBLightSM();
+
+  
+
+
+  // TurnRight(150, -30);
+  
   // ExecutePowerSM();
   // ExecuteSafetySM();
 
@@ -135,7 +146,6 @@ void loop() {
     // StopMotors();
   // }
   // else{
-  // StartRotatingCoM();
   // }
     
 
@@ -166,32 +176,40 @@ void loop() {
 
 void ExecutePrimarySM(){
   switch(State) {
-    case AtStudioDisoriented:{
-      if (verbose_states) {PrintVar("State is AtStudioDisoriented", State, PrintVarTimer);}
+
+    case DebugLineSensors:{
+      if (verbose_states) {PrintVar("State is DebugLineSensors", State, PrintVarTimer);}
+      PrintLineColors(lineLeftPin_in, lineRightPin_in);
+      StopMotors();
+      break;
+    }
+
+    case AtStudioNotOriented:{
+      if (verbose_states) {PrintVar("State is AtStudioNotOriented", State, PrintVarTimer);}
       if (PotentiometerInWait(Action)) {
-        MotorPulse(StartRotatingCoM, 255);
-        StartRotatingCoM(180);
+        MotorPulse(StartRotatingCoM, 255, -30);
+        StartRotatingCoM(180, -30);
         State = AtStudioOrienting;
       }
       break;
     }
 
     case AtStudioOrienting:{
-      // if (verbose_states) {PrintVar("State is AtStudioOrienting", State, PrintVarTimer);}
+      if (verbose_states) {PrintVar("State is AtStudioOrienting", State, PrintVarTimer);}
       int new_beacon_reading = analogRead(beaconPin_in);
-      // Serial.println(new_beacon_reading);
+      // Serial.println("Beacon reading:" + String(new_beacon_reading));
       if (beaconStrongEnough(new_beacon_reading)) {
-      // Serial.println("Stop. Beacon detected.");
+      Serial.println("Stop. Beacon detected.");
         StopMotors();
-        State = AtStudioOriented;
+        State = AtStudioOrientDone;
         StateTimer.reset();
       }
       beacon_reading = new_beacon_reading;
       break;
     }
 
-    case AtStudioOriented:{
-      if (verbose_states) {PrintVar("State is AtStudioOriented", State, PrintVarTimer);}
+    case AtStudioOrientDone:{
+      if (verbose_states) {PrintVar("State is AtStudioOrientDone", State, PrintVarTimer);}
       int new_pot_reading = analogRead(potPin_in);
 
       // Reset timer if the pot reading has changed.
@@ -203,34 +221,72 @@ void ExecutePrimarySM(){
         StateTimer.reset();
       }
       pot_reading = new_pot_reading;
+      // PrintVar("pot reading", pot_reading, PrintVarTimer);
       break;
     }
 
     case ChooseBasket:{
       if (verbose_states) {PrintVar("State is ChooseBasket", State, PrintVarTimer);}
       if (Basket==GOOD){
-        rotateAlphaGood();
-        if (StateTimer.check()) {State = HeadingToGoodBasket;}  // Stops rotation after a duration.
+        // rotateAlphaGood();
+        if (StateTimer.check()) {
+          State = BlindlyForwardGoodBasket;
+          MotorPulse(MoveForward, 180, -30);
+          StateTimer.reset();          // blind_follow_millis = millis();
+          }
       }
       else {
-        rotateAlphaBad();
-        if (StateTimer.check()) {State = HeadingToBadBasket;}   // Stops rotation after a duration.
+        // rotateAlphaBad();
+        if (StateTimer.check()) {
+          State = BlindlyForwardBadBasket;
+          MotorPulse(MoveForward, 180, -30);
+          StateTimer.reset();          // blind_follow_millis = millis();
+          } 
       }
       break;
     }
 
-    case HeadingToBadBasket:{
-      if (verbose_states) {PrintVar("State is HeadingToBadBasket", State, PrintVarTimer);}
-      MoveForward();
-      if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
-        State = FollowingRedTapeToBasket;
+    case BlindlyForwardBadBasket:{
+      if (verbose_states) {PrintVar("State is BlindlyForwardBadBasket", State, PrintVarTimer);}
+      if (StateTimer.check()){
+        StopMotors();
+        State = HeadingToBadBasket;
+      }
+      else{
+        MoveForward(140, -33);  // - (right) vs + (left)
       }
       break;
+    }
+
+
+    case HeadingToBadBasket:{
+      if (verbose_states) {PrintVar("State is HeadingToBadBasket", State, PrintVarTimer);}
+      MoveForward(140, -33);
+      
+      PrintLineColors(lineLeftPin_in, lineRightPin_in);
+      if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
+        Serial.println("Red tape entered!");
+        State = DebugLineSensors;
+        // State = StopIndefinitely;
+        // State = RotateLeftToFindRedTape;
+        // State = FollowingRedTapeToBasket;
+        StopMotors();
+      }
+      break;
+    }
+
+    case RotateLeftToFindRedTape:{
+      TurnLeft(130, 0);
+      if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
+        Serial.println("Turned left and Found red tape");
+        // State = StopIndefinitely;
+        State = FollowingRedTapeToBasket;
+      }
     }
 
     case HeadingToGoodBasket:{
       if (verbose_states) {PrintVar("State is HeadingToGoodBasket", State, PrintVarTimer);}
-      MoveForward();
+      MoveForward(0);
       if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
         State = IgnoreRedTapeToBasket;
         StateTimer.reset();
@@ -240,11 +296,12 @@ void ExecutePrimarySM(){
 
     case FollowingRedTapeToBasket:{
       if (verbose_states) {PrintVar("State is FollowingRedTapeToBasket", State, PrintVarTimer);}
-      followRedLine();
-      if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
-        State = DumpingBalls;
-        StateTimer.reset();
-      }
+      followRedLine(160, 30, -30, "fwd");
+      PrintLineColors(lineLeftPin_in, lineRightPin_in);
+      // if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
+      //   State = DumpingBalls;
+      //   StateTimer.reset();
+      // }
       break;
     }
 
@@ -292,9 +349,9 @@ void ExecutePrimarySM(){
     case HeadingBackFromBadBasket:{
       if (verbose_states) {PrintVar("State is HeadingBackFromBadBasket", State, PrintVarTimer);}
       if (StateTimer.check()){
-        MoveForward();
+        MoveForward(0);
         if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
-          followRedLine();
+          followRedLine(0);
           State = FollowingRedTapeToStudio;
         }
       }
@@ -304,7 +361,7 @@ void ExecutePrimarySM(){
     case HeadingBackFromGoodBasket:{
       if (verbose_states) {PrintVar("State is HeadingBackFromGoodBasket", State, PrintVarTimer);}
       if (StateTimer.check()){
-        MoveForward();
+        MoveForward(0);
         if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
           State = IgnoreRedTapeToStudio;
           StateTimer.reset();
@@ -318,10 +375,86 @@ void ExecutePrimarySM(){
       int beacon_val = analogRead(beaconPin_in);
       if (beaconStrongEnough(beacon_val)){
         StopMotors();
-        State = AtStudioDisoriented;
+        State = AtStudioNotOriented;
       }
       break;
     }
+
+    case StopIndefinitely:{
+      if (verbose_states) {PrintVar("State is StopIndefinitely", State, PrintVarTimer);}
+      StopMotors();
+    }
+
+
+
+
+    case Anil00_Init:{
+      if (verbose_states) {PrintVar("State is Anil00_Init", State, PrintVarTimer);}
+      
+      if (PotentiometerInWait(Action)) {
+        MotorPulse(MoveForward, 255, -30, 50);
+
+        StateTimer.interval(TIME_Studio_to_GoodCorner);
+        StateTimer.reset();
+        State = Anil01_Fwd;
+      }
+      break;
+    }
+
+    case Anil01_Fwd:{
+      if (verbose_states) {PrintVar("State is Anil01_Fwd", State, PrintVarTimer);}
+      MoveForward(140, -28);   // + (left) vs - (right)
+      if (StateTimer.check()){
+        StopMotors();
+        MotorPulse(StartRotatingCoM, 255, -30, 50);
+
+        StateTimer.interval(TIME_GoodCorner_Rotation);
+        StateTimer.reset();
+        State = Anil02_Rotate;
+      }
+      break;
+    }
+    
+    case Anil02_Rotate:{
+      if (verbose_states) {PrintVar("State is Anil02_Rotate", State, PrintVarTimer);}
+      StartRotatingCoM(160, -30);
+      if (StateTimer.check()){
+        MotorPulse(MoveForward, 255, -30, 50);
+
+        StateTimer.interval(TIME_Stop_At_GoodCorner);
+        StateTimer.reset();
+        State = Anil03_StopBeforeGood;
+      }
+      break;
+    }
+
+    case Anil03_StopBeforeGood:{
+      if (verbose_states) {PrintVar("State is Anil03_StopBeforeGood", State, PrintVarTimer);}
+      StopMotors();
+      if (StateTimer.check()){
+        MotorPulse(MoveForward, 255, -30, 50);
+
+        StateTimer.interval(TIME_GoodCorner_to_Basket);
+        StateTimer.reset();
+        State = Anil04_FwdToGood;
+      }
+      break;
+    }
+
+    case Anil04_FwdToGood:{
+      if (verbose_states) {PrintVar("State is Anil04_FwdToGood", State, PrintVarTimer);}
+      MoveForward(140, -33);
+      if (StateTimer.check()){
+        StopMotors();
+        // MotorPulse(StartRotatingCoM, 255, -30, 50);
+
+        // StateTimer.interval(750);
+        // StateTimer.reset();
+        State = StopIndefinitely;
+      }
+      break;
+    }
+
 
     default:
       /* stop robot */
@@ -358,9 +491,9 @@ void ExecutePowerSM(){
 
 void ExecuteRGBLightSM(){
   switch (State) {
-    case AtStudioDisoriented:
+    case AtStudioNotOriented:
     case AtStudioOrienting:
-    case AtStudioOriented:
+    case AtStudioOrientDone:
     case DumpingBalls:
     case MissionEnd:
     case ChooseBasket:
@@ -426,6 +559,7 @@ void ExecuteSafetySM(){
 void ExecuteLEDandPotSM(){
   // pot_reading = map(analogRead(potPin_in), 0, 1023, 0, 255);
   pot_reading = analogRead(potPin_in);  // [in range 0, 1023]
+  // Serial.println(pot_reading);
   if (inRange(pot_reading, BAD_POT_CUTOFF, 1023)){
     // Serial.println("C1");
     Basket = BAD;

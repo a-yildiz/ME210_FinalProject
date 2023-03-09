@@ -6,8 +6,8 @@
 /* Pins (Don't forget to set pinMode in setup) --> remaining pin: 9 */ 
 int potPin_in = A0;
 int beaconPin_in = A1;
-int lineLeftPin_in = A2;
-int lineRightPin_in = A3;
+int lineRightPin_in = A2;
+int lineLeftPin_in = A3;
 
 int RGB_RED_PIN = 8;
 int RGB_GREEN_PIN = 12;
@@ -36,19 +36,30 @@ bool FORWARD_A = true;
 bool FORWARD_B = false;
 
 
-/* Constants */
+/* Time Constants */
+
+int TIME_Studio_to_GoodCorner = 2500;
+int TIME_GoodCorner_Rotation = 730;
+int TIME_Stop_At_GoodCorner = 1000;
+int TIME_GoodCorner_to_Basket = 1000;
+
+
+/* Variable Constants */
+
 
 Servo GateServo;
 
-enum lines   {WHITE, BLACK, RED};
+enum lines   {WHITE, RED, BLACK};
 enum baskets {GOOD, BAD};
 enum actions {MOVE, WAIT};
-enum states  {AtStudioDisoriented, 
+enum states  {AtStudioNotOriented, 
               AtStudioOrienting,
-              AtStudioOriented,
+              AtStudioOrientDone,
               ChooseBasket,
               HeadingToBadBasket,
               HeadingToGoodBasket,
+              BlindlyForwardBadBasket,
+              BlindlyForwardGoodBasket,
               FollowingRedTapeToBasket,
               IgnoreRedTapeToBasket,
               IgnoreRedTapeToStudio,
@@ -56,7 +67,15 @@ enum states  {AtStudioDisoriented,
               HeadingBackFromBadBasket,
               HeadingBackFromGoodBasket,
               FollowingRedTapeToStudio,
-              MissionEnd};
+              StopIndefinitely,
+              RotateLeftToFindRedTape,
+              MissionEnd,
+              DebugLineSensors,
+              Anil00_Init,
+              Anil01_Fwd,
+              Anil02_Rotate,
+              Anil03_StopBeforeGood,
+              Anil04_FwdToGood};
 
 
 uint8_t RGB_BLANK[3]  = {LOW, LOW, LOW};
@@ -69,7 +88,7 @@ uint8_t RGB_PURPLE[3] = {HIGH, LOW, HIGH};
 uint8_t RGB_WHITE[3]  = {HIGH, HIGH, HIGH};
 
 #define GOOD_POT_CUTOFF     102  // [out of 1024]
-#define BAD_POT_CUTOFF    922  // [out of 1024]
+#define BAD_POT_CUTOFF    740  // [out of 1024]
 
 
 
