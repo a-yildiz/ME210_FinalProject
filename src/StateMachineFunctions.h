@@ -143,7 +143,7 @@ void TurnLeft(int def_speed=220, int offset_B=0){
 }
 
 void RotateLeft(int def_speed=220, int offset_B=0){
-    // Serial.println("Going left...");
+    // Serial.println("Rotating left...");
     int offset_A = 0;
 
     digitalWrite(DIR_A_1, !FORWARD_A);
@@ -156,34 +156,54 @@ void RotateLeft(int def_speed=220, int offset_B=0){
     analogWrite(PWM_B, speed_B);
 }
 
+void RotateRight(int def_speed=220, int offset_B=0){
+    // Serial.println("Rotating right...");
+    int offset_A = 0;
+
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, !FORWARD_A);
+    digitalWrite(DIR_B_1, !FORWARD_B);
+    digitalWrite(DIR_B_2, FORWARD_B);
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
+}
+
 void followRedLine(int def_speed=220, int margin=0, int offset_B=0, String both_white_action="left"){
     /* Controller to follow red tape line. */
 
     // If Right Sensor and Left Sensor are at White color then it will call forword function
     if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)!=RED)){
         if (both_white_action=="left") {
-            return TurnLeft(100, +20);
+            Serial.println("RotateLeft");
+            return RotateLeft(100, +20);
         }
         else if (both_white_action=="right"){
-            return TurnRight(def_speed-margin, offset_B);
+            Serial.println("RotateRight");
+            return RotateRight(def_speed-margin, offset_B);
         }
         else {
+        Serial.println("MoveForward");
         return MoveForward(def_speed, offset_B);
         }
     }
 
     // If Right Sensor is Red and Left Sensor is White then it will call turn Right function  
     if((detectLine(lineRightPin_in)==RED) && (detectLine(lineLeftPin_in)!=RED)){
-        return TurnRight(def_speed-margin, offset_B);
+        Serial.println("RotateRight");
+        return RotateRight(def_speed-margin, offset_B);
     } 
 
     // If Right Sensor is White and Left Sensor is Red then it will call turn Left function
     if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)==RED)){
-        return TurnLeft(100, +20);
+        Serial.println("RotateLeft");
+        return RotateLeft(100, +20);
     }
 
     // If Right Sensor and Left Sensor are at Red color then it will call Stop function
     if((detectLine(lineRightPin_in)==RED) && (detectLine(lineLeftPin_in)==RED)){
+        Serial.println("MoveForward");
         return MoveForward(def_speed, offset_B);
     }
 }

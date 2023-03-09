@@ -6,7 +6,7 @@
 
 
 /* Initializations */
-states State =  AtStudioOrientDone; //Anil00_Init; //FollowingRedTapeToBasket; //AtStudioNotOriented;
+states State =  AtStudioOrientDone; //FollowingRedTapeToBasket; //AtStudioNotOriented;
 baskets Basket = GOOD;
 actions Action = MOVE;
 
@@ -280,6 +280,7 @@ void ExecutePrimarySM(){
       StopMotors();
       if (StateTimer.check()){
         State = RotateLeftToFindRedTape;
+        StateTimer.interval(450);
         StateTimer.reset();
       }
       break;
@@ -289,11 +290,22 @@ void ExecutePrimarySM(){
       if (verbose_states) {PrintVar("State is RotateLeftToFindRedTape", State, PrintVarTimer);}
       RotateLeft(170, -40);
       
-      // if ((detectLine(lineRightPin_in)==RED)){
       if (StateTimer.check()){
         Serial.println("Rotated left");
+        // State = StopIndefinitely;
+        State = FollowingRedTapeToBasket;
+      }
+      break;
+    }
+
+    case FollowingRedTapeToBasket:{
+      if (verbose_states) {PrintVar("State is FollowingRedTapeToBasket", State, PrintVarTimer);}
+      followRedLine(140, 30, -30, "fwd");
+      // PrintLineColors(lineLeftPin_in, lineRightPin_in);
+      if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
+        // State = DumpingBalls;
         State = StopIndefinitely;
-        // State = FollowingRedTapeToBasket;
+        StateTimer.reset();
       }
       break;
     }
@@ -309,16 +321,6 @@ void ExecutePrimarySM(){
       break;
     }
 
-    case FollowingRedTapeToBasket:{
-      if (verbose_states) {PrintVar("State is FollowingRedTapeToBasket", State, PrintVarTimer);}
-      followRedLine(160, 30, -30, "fwd");
-      PrintLineColors(lineLeftPin_in, lineRightPin_in);
-      // if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
-      //   State = DumpingBalls;
-      //   StateTimer.reset();
-      // }
-      break;
-    }
 
     case IgnoreRedTapeToBasket:{
       if (verbose_states) {PrintVar("State is IgnoreRedTapeToBasket", State, PrintVarTimer);}
