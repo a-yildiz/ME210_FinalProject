@@ -22,6 +22,7 @@ int servo_angle = 0;
 
 bool verbose_states = true;
 int blind_follow_millis = 0;
+bool debug_param = false;
 
 Metro PrintVarTimer(250);
 Metro StateTimer(1000);
@@ -126,17 +127,16 @@ void loop() {
   // PrintVar("Action", Action, PrintVarTimer);
 
 
+  // if (StateTimer.check()) {debug_param = true;}
+  // if (debug_param) {StopMotors();}
+  // else {RotateLeft(170, -40);}
+  
 
   // /* State Machines */
   ExecuteLEDandPotSM();
   ExecutePrimarySM();
-  ExecuteRGBLightSM();
-
-  
-
-
-  // TurnRight(150, -30);
-  
+    
+  // ExecuteRGBLightSM();
   // ExecutePowerSM();
   // ExecuteSafetySM();
 
@@ -253,7 +253,7 @@ void ExecutePrimarySM(){
         State = HeadingToBadBasket;
       }
       else{
-        MoveForward(140, -33);  // - (right) vs + (left)
+        MoveForward(160, -33);  // - (right) vs + (left)
       }
       break;
     }
@@ -261,28 +261,43 @@ void ExecutePrimarySM(){
 
     case HeadingToBadBasket:{
       if (verbose_states) {PrintVar("State is HeadingToBadBasket", State, PrintVarTimer);}
-      MoveForward(140, -33);
+      MoveForward(160, -33);
       
-      PrintLineColors(lineLeftPin_in, lineRightPin_in);
+      // PrintLineColors(lineLeftPin_in, lineRightPin_in);
       if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
         Serial.println("Red tape entered!");
-        State = DebugLineSensors;
-        // State = StopIndefinitely;
+        // State = DebugLineSensors;
         // State = RotateLeftToFindRedTape;
-        // State = FollowingRedTapeToBasket;
+        State = StopBrieflyBeforeTurn;
+        StateTimer.reset();
         StopMotors();
       }
       break;
     }
 
-    case RotateLeftToFindRedTape:{
-      TurnLeft(130, 0);
-      if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
-        Serial.println("Turned left and Found red tape");
-        // State = StopIndefinitely;
-        State = FollowingRedTapeToBasket;
+    case StopBrieflyBeforeTurn:{
+      if (verbose_states) {PrintVar("State is StopBrieflyBeforeTurn", State, PrintVarTimer);}
+      StopMotors();
+      if (StateTimer.check()){
+        State = RotateLeftToFindRedTape;
+        StateTimer.reset();
       }
+      break;
     }
+
+    case RotateLeftToFindRedTape:{
+      if (verbose_states) {PrintVar("State is RotateLeftToFindRedTape", State, PrintVarTimer);}
+      RotateLeft(170, -40);
+      
+      // if ((detectLine(lineRightPin_in)==RED)){
+      if (StateTimer.check()){
+        Serial.println("Rotated left");
+        State = StopIndefinitely;
+        // State = FollowingRedTapeToBasket;
+      }
+      break;
+    }
+
 
     case HeadingToGoodBasket:{
       if (verbose_states) {PrintVar("State is HeadingToGoodBasket", State, PrintVarTimer);}
@@ -383,7 +398,9 @@ void ExecutePrimarySM(){
     case StopIndefinitely:{
       if (verbose_states) {PrintVar("State is StopIndefinitely", State, PrintVarTimer);}
       StopMotors();
+      break;
     }
+
 
 
 

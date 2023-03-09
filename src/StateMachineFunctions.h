@@ -79,7 +79,7 @@ void MotorPulse(void (*func)(int, int), int speed, int offset_B=0, int millis=50
     Metro tempTimer(millis); // [ms]
     tempTimer.reset();
     while (!tempTimer.check()){
-        Serial.println("Pulsing!");
+        // Serial.println("Pulsing!");
         func(speed, offset_B);
     }
     StopMotors();
@@ -142,13 +142,27 @@ void TurnLeft(int def_speed=220, int offset_B=0){
     analogWrite(PWM_B, speed_B);
 }
 
+void RotateLeft(int def_speed=220, int offset_B=0){
+    // Serial.println("Going left...");
+    int offset_A = 0;
+
+    digitalWrite(DIR_A_1, !FORWARD_A);
+    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
+}
+
 void followRedLine(int def_speed=220, int margin=0, int offset_B=0, String both_white_action="left"){
     /* Controller to follow red tape line. */
 
     // If Right Sensor and Left Sensor are at White color then it will call forword function
     if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)!=RED)){
         if (both_white_action=="left") {
-            return TurnLeft(def_speed-margin, offset_B);
+            return TurnLeft(100, +20);
         }
         else if (both_white_action=="right"){
             return TurnRight(def_speed-margin, offset_B);
@@ -165,7 +179,7 @@ void followRedLine(int def_speed=220, int margin=0, int offset_B=0, String both_
 
     // If Right Sensor is White and Left Sensor is Red then it will call turn Left function
     if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)==RED)){
-        return TurnLeft(def_speed-margin, offset_B);
+        return TurnLeft(100, +20);
     }
 
     // If Right Sensor and Left Sensor are at Red color then it will call Stop function
