@@ -552,9 +552,12 @@ void ExecutePrimarySM()
         State = AtStudioNotOriented;
         break;
       }
-      StopMotors();
-      hitJunction = false;
-      State = DumpAndTurn;
+      else
+      {
+        StopMotors();
+        hitJunction = false;
+        State = DumpAndTurn;
+      }
     }
     break;
   }
@@ -567,11 +570,12 @@ void ExecutePrimarySM()
       FlickerGate();
       delay(2000);
       MotorPulse(MoveBackward, 180, -30, 200);
-      MotorPulse(StartRotatingCoMReverse, 180, -30, 180);
+      MotorPulse(StartRotatingCoMReverse, 150, -30, 300);
       dumpcount += 1;
       dumped = true;
     }
-    StartRotatingCoMReverse(135, -30);
+    StartRotatingCoMReverse(115, -30);
+    // StopMotors();
     if (detectLine(lineLeftPin_in, 500, 700) == RED || detectLine(lineRightPin_in, 650, 763) == RED)
     {
       StopMotors();
