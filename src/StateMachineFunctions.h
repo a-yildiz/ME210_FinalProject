@@ -58,11 +58,13 @@ void PrintLineColors(int pin_left, int pin_right){
         );
 }
 
-void PrintLineColors(int pin_left, int pin_right, Metro& timer){
+void PrintLineColors(int pin_left, int pin_right, int pin_third, Metro& timer){
   if (timer.check()){
     timer.reset();
     Serial.println(
-        "Left_Line, Right_Line: "
+        "Third_Line, Left_Line, Right_Line: "
+        +String(analogRead(pin_third))+" ("
+        +StringLineColor(pin_third)+") , "        
         +String(analogRead(pin_left))+" ("
         +StringLineColor(pin_left)+") , "
         +String(analogRead(pin_right))+" ("

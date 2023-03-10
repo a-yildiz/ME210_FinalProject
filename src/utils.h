@@ -8,6 +8,7 @@ int potPin_in = A0;
 int beaconPin_in = A1;
 int lineRightPin_in = A2;
 int lineLeftPin_in = A3;
+int lineThirdPin_in = A4;
 
 int RGB_RED_PIN = 8;
 int RGB_GREEN_PIN = 12;
@@ -93,7 +94,8 @@ enum states  {AtStudioNotOriented,
               XX_Stop1,
               XX_Rotate1,
               XX_LineTrack1,
-              XX_LineTrack2};
+              XX_LineTrack2,
+              RotateToRedLine};
 
 
 uint8_t RGB_BLANK[3]  = {LOW, LOW, LOW};

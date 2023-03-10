@@ -6,7 +6,7 @@
 
 
 /* Initializations */
-states State = AtStudioNotOriented; // AtStudioOrientDone; //FollowingRedTapeToBasket; //AtStudioNotOriented;
+states State = DebugLineSensors; //AtStudioNotOriented; // AtStudioOrientDone; //FollowingRedTapeToBasket; //AtStudioNotOriented;
 baskets Basket = GOOD;
 actions Action = MOVE;
 
@@ -164,53 +164,48 @@ void ExecutePrimarySM(){
   switch(State) {
 
     case LINEFollowingToGoodBasket:{
-      if (verbose_states) {PrintVar("State is PureRedLineFollowing", State, PrintVarTimer);}
+      if (verbose_states) {PrintVar("State is LINEFollowingToGoodBasket", State, PrintVarTimer);}
       followLineFWD(120, 30, 0);
-      // if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
-      //   PrintLineColors(lineLeftPin_in, lineRightPin_in);  
-      //   State = StopIndefinitely;
-      // }
+      if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
+        // PrintLineColors(lineLeftPin_in, lineRightPin_in);  
+        State = DumpingBalls;   // StopIndefinitely;
+        StateTimer.interval(2000);
+        StateTimer.reset();
+      }
       break;
     }
 
     case DumpingBalls:{
       if (verbose_states) {PrintVar("State is DumpingBalls", State, PrintVarTimer);}
       StopMotors();
-      RaiseGate();
+      LowerGate();
 
       if (StateTimer.check()){
-        LowerGate();
+        RaiseGate();
+        State = RotateToRedLine;
+        StateTimer.interval(500);
         StateTimer.reset();
-
-        if (Basket==BAD){
-          State = HeadingBackFromBadBasket;
-        }
-        else {
-          State = ROTATEInFrontOfBasket;
-        }
       }
       break;
     }
 
 
-    case ROTATEInFrontOfBasket:{
-      if (verbose_states) {PrintVar("State is ROTATEInFrontOfBasket", State, PrintVarTimer);}
-      MoveBackward(250, -110);
-      RaiseGate();
-
-      if (detectLine(lineLeftPin_in)==RED){
+    case RotateToRedLine:{
+      if (verbose_states) {PrintVar("State is RotateToRedLine", State, PrintVarTimer);}
+      RotateLeft(100, 10);
+      if (StateTimer.check() && detectLine(lineLeftPin_in)==RED){
         State = LINEFollowingToStudioFromGoodBasket;
       }
-      break;
       break;
     }
 
 
     case LINEFollowingToStudioFromGoodBasket:{
-      if (verbose_states) {PrintVar("State is PureRedLineFollowing", State, PrintVarTimer);}
-      followLineFWD(120, 0, -10);
+      if (verbose_states) {PrintVar("State is LINEFollowingToStudioFromGoodBasket", State, PrintVarTimer);}
+      followLineFWD(120, 30, 0);
       if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
-        PrintLineColors(lineLeftPin_in, lineRightPin_in);  
+        // PrintLineColors(lineLeftPin_in, lineRightPin_in);  
+        State = StopIndefinitely;
       }
       break;
     }
@@ -219,19 +214,13 @@ void ExecutePrimarySM(){
 
 
 
-    case PureRedLineFollowing:{
-      if (verbose_states) {PrintVar("State is PureRedLineFollowing", State, PrintVarTimer);}
-      followRedLine(120, 0, -10, "fwd");
-      if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
-        PrintLineColors(lineLeftPin_in, lineRightPin_in);
-        // State = StopIndefinitely;
-      }
-      break;
-    }
+
+
+
 
     case DebugLineSensors:{
       // if (verbose_states) {PrintVar("State is DebugLineSensors", State, PrintVarTimer);}
-      PrintLineColors(lineLeftPin_in, lineRightPin_in, PrintVarTimer);
+      PrintLineColors(lineLeftPin_in, lineRightPin_in, lineThirdPin_in, PrintVarTimer);
       StopMotors();
       break;
     }
@@ -303,11 +292,6 @@ void ExecutePrimarySM(){
       break;
     }
 
-
-    case XX_LineTrack2:{
-
-      break;
-    }
 
     case ChooseBasket:{
       if (verbose_states) {PrintVar("State is ChooseBasket", State, PrintVarTimer);}
