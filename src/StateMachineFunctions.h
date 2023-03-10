@@ -241,8 +241,22 @@ void PivotLeft(int def_speed=220, int offset_B=0){
 }
 
 
-void followLineFWD(int def_speed=220, int margin=0, int offset_B=0){
+void followLineFWD(baskets B, int def_speed=220, int margin=0, int offset_B=0){
     
+    // Third line sensor
+    if ((B==BAD) && (detectLine(lineThirdPin_in)==RED)){
+        Serial.println("ThirdLine Activated");
+        return RotateLeft(100, 10);
+    }
+    else if ((B==GOOD) && (detectLine(lineThirdPin_in)==RED) && (detectLine(lineLeftPin_in)==RED || detectLine(lineRightPin_in)==RED)){
+        Serial.println("ThirdLine Ignored");
+        // return RotateRight(100, 10);
+        // return MoveForward(def_speed, offset_B);
+        last_line_follower=0;
+        return MotorPulse(StartRotatingCoM, 255, -30, 15);
+
+    }
+
      // If Right Sensor and Left Sensor are at White color then it will call forword function
     if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)!=RED)){
         if (last_line_follower==0) {

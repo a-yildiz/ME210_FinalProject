@@ -6,7 +6,7 @@
 
 
 /* Initializations */
-states State = DebugLineSensors; //AtStudioNotOriented; // AtStudioOrientDone; //FollowingRedTapeToBasket; //AtStudioNotOriented;
+states State = AtStudioNotOriented; // AtStudioOrientDone; //FollowingRedTapeToBasket; //AtStudioNotOriented;
 baskets Basket = GOOD;
 actions Action = MOVE;
 
@@ -165,7 +165,7 @@ void ExecutePrimarySM(){
 
     case LINEFollowingToGoodBasket:{
       if (verbose_states) {PrintVar("State is LINEFollowingToGoodBasket", State, PrintVarTimer);}
-      followLineFWD(120, 30, 0);
+      followLineFWD(Basket, 120, 30, 0);
       if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
         // PrintLineColors(lineLeftPin_in, lineRightPin_in);  
         State = DumpingBalls;   // StopIndefinitely;
@@ -202,7 +202,7 @@ void ExecutePrimarySM(){
 
     case LINEFollowingToStudioFromGoodBasket:{
       if (verbose_states) {PrintVar("State is LINEFollowingToStudioFromGoodBasket", State, PrintVarTimer);}
-      followLineFWD(120, 30, 0);
+      followLineFWD(Basket, 120, 30, 0);
       if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
         // PrintLineColors(lineLeftPin_in, lineRightPin_in);  
         State = StopIndefinitely;
