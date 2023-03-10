@@ -230,8 +230,8 @@ void loop()
   {
     RespToKey();
     // char f = Serial.read();
-    // PrintVar("right", detectLine(lineRightPin_in));
-    // PrintVar("left", detectLine(lineLeftPin_in));
+    // PrintVar("right", detectLine(lineRightPin_in, 650, 763));
+    // PrintVar("left", detectLine(lineLeftPin_in, 500, 700));
   }
 
   // RaiseGate();
@@ -319,7 +319,7 @@ void ExecutePrimarySM()
   case HeadingToBadBasket:
   {
     MoveForward();
-    if ((detectLine(lineLeftPin_in) == RED) || (detectLine(lineRightPin_in) == RED))
+    if ((detectLine(lineLeftPin_in, 500, 700) == RED) || (detectLine(lineRightPin_in, 650, 763) == RED))
     {
       State = FollowingRedTapeToBasket;
     }
@@ -329,7 +329,7 @@ void ExecutePrimarySM()
   case HeadingToGoodBasket:
   {
     MoveForward();
-    if ((detectLine(lineLeftPin_in) == RED) || (detectLine(lineRightPin_in) == RED))
+    if ((detectLine(lineLeftPin_in, 500, 700) == RED) || (detectLine(lineRightPin_in, 650, 763) == RED))
     {
       State = IgnoreRedTapeToBasket;
       StateTimer.reset();
@@ -340,7 +340,7 @@ void ExecutePrimarySM()
   case FollowingRedTapeToBasket:
   {
     followRedLine();
-    if ((detectLine(lineLeftPin_in) == BLACK) || (detectLine(lineRightPin_in) == BLACK))
+    if ((detectLine(lineLeftPin_in, 500, 700) == BLACK) || (detectLine(lineRightPin_in, 650, 763) == BLACK))
     {
       State = DumpingBalls;
       StateTimer.reset();
@@ -352,7 +352,7 @@ void ExecutePrimarySM()
   {
     if (StateTimer.check())
     {
-      if ((detectLine(lineLeftPin_in) == RED) || (detectLine(lineRightPin_in) == RED))
+      if ((detectLine(lineLeftPin_in, 500, 700) == RED) || (detectLine(lineRightPin_in, 650, 763) == RED))
       {
         State = FollowingRedTapeToBasket;
       }
@@ -364,7 +364,7 @@ void ExecutePrimarySM()
   {
     if (StateTimer.check())
     {
-      if ((detectLine(lineLeftPin_in) == RED) || (detectLine(lineRightPin_in) == RED))
+      if ((detectLine(lineLeftPin_in, 500, 700) == RED) || (detectLine(lineRightPin_in, 650, 763) == RED))
       {
         State = FollowingRedTapeToStudio;
       }
@@ -401,7 +401,7 @@ void ExecutePrimarySM()
     if (StateTimer.check())
     {
       MoveForward();
-      if ((detectLine(lineLeftPin_in) == RED) || (detectLine(lineRightPin_in) == RED))
+      if ((detectLine(lineLeftPin_in, 500, 700) == RED) || (detectLine(lineRightPin_in, 650, 763) == RED))
       {
         followRedLine();
         State = FollowingRedTapeToStudio;
@@ -415,7 +415,7 @@ void ExecutePrimarySM()
     if (StateTimer.check())
     {
       MoveForward();
-      if ((detectLine(lineLeftPin_in) == RED) || (detectLine(lineRightPin_in) == RED))
+      if ((detectLine(lineLeftPin_in, 500, 700) == RED) || (detectLine(lineRightPin_in, 650, 763) == RED))
       {
         State = IgnoreRedTapeToStudio;
         StateTimer.reset();
