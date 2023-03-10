@@ -70,13 +70,17 @@ enum states  {AtStudioNotOriented,
               StopIndefinitely,
               StopBrieflyBeforeTurn,
               RotateLeftToFindRedTape,
+              RotateLeftToFindRedTape2,
               MissionEnd,
               DebugLineSensors,
+              HeadToVerticalRedTape,
+              BlindlyToRedTape,
               Anil00_Init,
               Anil01_Fwd,
               Anil02_Rotate,
               Anil03_StopBeforeGood,
-              Anil04_FwdToGood};
+              Anil04_FwdToGood,
+              PureRedLineFollowing};
 
 
 uint8_t RGB_BLANK[3]  = {LOW, LOW, LOW};

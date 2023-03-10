@@ -178,6 +178,16 @@ void loop() {
 void ExecutePrimarySM(){
   switch(State) {
 
+    case PureRedLineFollowing:{
+      if (verbose_states) {PrintVar("State is PureRedLineFollowing", State, PrintVarTimer);}
+      followRedLine(120, 0, -10, "fwd");
+      if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
+        PrintLineColors(lineLeftPin_in, lineRightPin_in);
+        // State = StopIndefinitely;
+      }
+      break;
+    }
+
     case DebugLineSensors:{
       if (verbose_states) {PrintVar("State is DebugLineSensors", State, PrintVarTimer);}
       PrintLineColors(lineLeftPin_in, lineRightPin_in);
@@ -280,7 +290,7 @@ void ExecutePrimarySM(){
       if (verbose_states) {PrintVar("State is StopBrieflyBeforeTurn", State, PrintVarTimer);}
       StopMotors();
       if (StateTimer.check()){
-        Serial.println("Rotating left!");
+        Serial.println("Rotating left soon!");
         State = RotateLeftToFindRedTape;
         // StateTimer.interval(450);
         // StateTimer.reset();
@@ -338,12 +348,59 @@ void ExecutePrimarySM(){
   case HeadingBackFromBadBasket:{
       if (verbose_states) {PrintVar("State is HeadingBackFromBadBasket", State, PrintVarTimer);}
       MoveBackward(250, -110);
+      RaiseGate();
 
       if (StateTimer.check()){
-        State = StopIndefinitely;
+        State = BlindlyToRedTape;
+        StateTimer.interval(1000);
+        StateTimer.reset();
       }
       break;
   }
+
+  case BlindlyToRedTape:{
+      if (verbose_states) {PrintVar("State is BlindlyToRedTape", State, PrintVarTimer);}
+      if (StateTimer.check()){
+        StopMotors();
+        State = HeadToVerticalRedTape;
+      }
+      else{
+        MoveForward(140, -33);  // - (right) vs + (left)
+      }
+      break;
+  }
+
+
+  case HeadToVerticalRedTape:{
+    if (verbose_states) {PrintVar("State is HeadingToBadBasket", State, PrintVarTimer);}
+    MoveForward(130, -21);
+    
+    if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
+      PrintLineColors(lineLeftPin_in, lineRightPin_in);
+      Serial.println("Red tape entered!");
+      State = RotateLeftToFindRedTape2;
+      StateTimer.interval(300);
+      StateTimer.reset();
+      StopMotors();
+    }
+    break;
+  }
+
+
+  case RotateLeftToFindRedTape2:{
+    if (verbose_states) {PrintVar("State is RotateLeftToFindRedTape", State, PrintVarTimer);}
+    RotateLeft(150, -30);
+    
+    if (StateTimer.check() && (lineRightPin_in)==RED){
+      Serial.println("Rotated left");
+      State = StopIndefinitely;
+    }
+    break;
+  }
+
+
+
+
 
 
 
