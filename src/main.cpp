@@ -44,12 +44,14 @@ int servo_angle = 0;
 bool verbose_states = true;
 int blind_follow_millis = 0;
 
+bool mission_ended_flag = false;
+
 Metro DebugTimer(750);
 bool debug_param = false;
 
 Metro PrintVarTimer(250);
 Metro StateTimer(1000);
-Metro WaveTimer(2000);
+Metro WaveTimer(200);
 Metro MisssionTimer(130000); // Mission time: 2m 10s = 130s = 130000ms
 
 /* Function Definitions */
@@ -154,7 +156,7 @@ void loop()
   ExecutePrimarySM();
 
   // ExecuteRGBLightSM();
-  // ExecutePowerSM();
+  ExecutePowerSM();
   // ExecuteSafetySM();
 
   // PrintVar("beacon", analogRead(beaconPin_in), PrintVarTimer);
@@ -1088,32 +1090,46 @@ void ExecutePrimarySM()
 void ExecutePowerSM()
 {
   // Wave at audiance when beginning mission.
-  if (!WaveTimer.check())
+  if (!WaveTimer.check() && State==AtStudioOrientAdjust)
   {
     if (no_of_waves % 2 == 1)
     {
-      WaveUpAtAudience();
+      setRGBcolor(RGB_PURPLE);
+      WaveTimer.reset();
+      no_of_waves++;
     }
     else
     {
-      WaveDownAtAudience();
+      setRGBcolor(RGB_YELLOW);
+      WaveTimer.reset();
+      no_of_waves++;
     }
   }
-  else if (no_of_waves <= 5)
-  {
-    WaveTimer.reset();
-    no_of_waves++;
-  }
-  else
-  {
-    StopWave();
-  }
 
-  // Stop
-  if (MisssionTimer.check() and State != MissionEnd)
+
+  // Stop when mission ends.
+  if (MisssionTimer.check())
   {
-    State = MissionEnd;
-    WaveTimer.reset();
+    StopMotors();
+
+    if (!mission_ended_flag){
+      WaveTimer.reset();
+      mission_ended_flag = true;
+    }
+
+
+    if (no_of_waves % 2 == 1)
+    {
+      setRGBcolor(RGB_PURPLE);
+      WaveTimer.reset();
+      no_of_waves++;    
+    }
+    else
+    {
+      setRGBcolor(RGB_YELLOW);
+      WaveTimer.reset();
+      no_of_waves++;
+    }
   }
 }
 

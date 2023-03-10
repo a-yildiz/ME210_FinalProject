@@ -144,6 +144,19 @@ void MotorPulse(void (*func)(int, int), int speed, int offset_B = 0, int millis 
     StopMotors();
 }
 
+void MotorPulse(void (*func)(), int speed, int offset_B = 0, int millis = 50)
+{
+    // Rotate both motors at equal torque, for 200ms.
+    Metro tempTimer(millis); // [ms]
+    tempTimer.reset();
+    while (!tempTimer.check())
+    {
+        // Serial.println("Pulsing!");
+        func();
+    }
+    StopMotors();
+}
+
 void MoveForward(int def_speed = 220, int offset_B = 0)
 {
     // Rotate both motors at equal torque.
