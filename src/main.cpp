@@ -286,16 +286,18 @@ void ExecutePrimarySM(){
       StopMotors();
       if (StateTimer.check()){
         State = XX_LineTrack1;
-        StateTimer.interval(200);
+        StateTimer.interval(500);
         StateTimer.reset();
+        MotorPulse(MoveForward, 255, -30);
       }
       break;
     }
 
 
     case XX_LineTrack1:{
-      MoveForward(130, -33);
-      if (detectLine(lineLeftPin_in)==RED || detectLine(lineRightPin_in)==RED){
+      if (verbose_states) {PrintVar("State is XX_LineTrack1", State, PrintVarTimer);}
+      MoveForward(160, -33);
+      if (StateTimer.check()){
         State = LINEFollowingToGoodBasket;
       }
       break;
