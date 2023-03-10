@@ -545,7 +545,7 @@ void ExecutePrimarySM()
     {
       if (dumpcount == 2)
       {
-        MotorPulse(MoveForward, 140, -30, 100);
+        MotorPulse(MoveForward, 140, -30, 800);
         StopMotors();
         delay(3000);
         dumpcount = 0;
