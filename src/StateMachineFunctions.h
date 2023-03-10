@@ -13,11 +13,24 @@ bool StrongestBeaconSignalFound(int old_IR, int new_IR){
 lines detectLine(int pin){
     // Return WHITE, BLACK or RED; sensed from the IR line sensor.
     // From floor to top of sensor where the wires connect: exactly 1 inch.
-    int min_red   = 430;   // drop this to 420 during daylight
-    int black_min = 550;   // drop this to 500 during daylight
+    int min_red   = 420;   // drop this to 420 during daylight
+    int black_min = 650;   // drop this to 500 during daylight
     if (analogRead(pin) > black_min) {
         return BLACK;}
     else if (analogRead(pin) < min_red) {
+        return WHITE;}
+    else {
+        return RED;}
+}
+
+lines calcLine(int val){
+    // Return WHITE, BLACK or RED; sensed from the IR line sensor.
+    // From floor to top of sensor where the wires connect: exactly 1 inch.
+    int min_red   = 420;   // drop this to 420 during daylight
+    int black_min = 650;   // drop this to 500 during daylight
+    if (val > black_min) {
+        return BLACK;}
+    else if (val < min_red) {
         return WHITE;}
     else {
         return RED;}
@@ -43,6 +56,19 @@ void PrintLineColors(int pin_left, int pin_right){
         +String(analogRead(pin_right))+" ("
         +StringLineColor(pin_right)+")"
         );
+}
+
+void PrintLineColors(int pin_left, int pin_right, Metro& timer){
+  if (timer.check()){
+    timer.reset();
+    Serial.println(
+        "Left_Line, Right_Line: "
+        +String(analogRead(pin_left))+" ("
+        +StringLineColor(pin_left)+") , "
+        +String(analogRead(pin_right))+" ("
+        +StringLineColor(pin_right)+")"
+        );
+  }
 }
 
 
@@ -134,8 +160,8 @@ void TurnRight(int def_speed=220, int offset_B=0){
 
     digitalWrite(DIR_A_1, FORWARD_A);
     digitalWrite(DIR_A_2, !FORWARD_A);
-    digitalWrite(DIR_B_1, !FORWARD_B);
-    digitalWrite(DIR_B_2, FORWARD_B);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
     speed_A = def_speed + offset_A;
     speed_B = def_speed + offset_B;
     analogWrite(PWM_A, speed_A);
@@ -183,6 +209,77 @@ void RotateRight(int def_speed=220, int offset_B=0){
     analogWrite(PWM_A, speed_A);
     analogWrite(PWM_B, speed_B);
 }
+
+void PivotRight(int def_speed=220, int offset_B=0){
+    // Serial.println("Going right...");
+    int offset_A = 0;
+
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, !FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, FORWARD_B);
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
+}
+
+void PivotLeft(int def_speed=220, int offset_B=0){
+    // Serial.println("Going left...");
+    int offset_A = 0;
+
+    digitalWrite(DIR_A_1, FORWARD_A);
+    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
+}
+
+
+void followLineFWD(int def_speed=220, int margin=0, int offset_B=0){
+    
+     // If Right Sensor and Left Sensor are at White color then it will call forword function
+    if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)!=RED)){
+        if (last_line_follower==0) {
+            Serial.println("RotateLeft");
+            return RotateLeft(100, 10);
+        }
+        else if (last_line_follower==1){
+            Serial.println("RotateRight");
+            return RotateRight(120, 10);
+        }
+        else {
+        Serial.println("MoveForward");
+        return MoveForward(def_speed, offset_B);
+        }
+    }
+
+    // If Right Sensor is Red and Left Sensor is White then it will call turn Right function  
+    if((detectLine(lineRightPin_in)==RED) && (detectLine(lineLeftPin_in)!=RED)){
+        Serial.println("RotateRight");
+        last_line_follower=1;
+        return TurnRight(110, 10);
+    } 
+
+    // If Right Sensor is White and Left Sensor is Red then it will call turn Left function
+    if((detectLine(lineRightPin_in)!=RED) && (detectLine(lineLeftPin_in)==RED)){
+        Serial.println("RotateLeft");
+        last_line_follower=0;
+        return TurnLeft(90, 10);
+    }
+
+    // If Right Sensor and Left Sensor are at Red color then it will call Stop function
+    if((detectLine(lineRightPin_in)==RED) && (detectLine(lineLeftPin_in)==RED)){
+        Serial.println("MoveForward");
+        last_line_follower=2;
+        return MoveForward(def_speed, offset_B);
+    }
+}
+
+
 
 void followRedLine(int def_speed=220, int margin=0, int offset_B=0, String both_white_action="left"){
     /* Controller to follow red tape line. */

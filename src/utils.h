@@ -46,6 +46,8 @@ int TIME_GoodCorner_to_Basket = 1000;
 
 /* Variable Constants */
 
+int last_line_follower = 0;
+int last_line_pulse = 0;
 
 Servo GateServo;
 
@@ -75,12 +77,23 @@ enum states  {AtStudioNotOriented,
               DebugLineSensors,
               HeadToVerticalRedTape,
               BlindlyToRedTape,
+              LINEFollowingToGoodBasket,
+              LINEFollowingToStudioFromGoodBasket,
+              ROTATEInFrontOfBasket,
+              RollBalls,
               Anil00_Init,
               Anil01_Fwd,
               Anil02_Rotate,
-              Anil03_StopBeforeGood,
-              Anil04_FwdToGood,
-              PureRedLineFollowing};
+              Anil03_StopBeforeBad,
+              Anil04_FwdToBad,
+              Anil05_BackFromBad,
+              Anil55_StopBeforeBad2,
+              Anil06_RotateFromBadToGood,
+              PureRedLineFollowing,
+              XX_Stop1,
+              XX_Rotate1,
+              XX_LineTrack1,
+              XX_LineTrack2};
 
 
 uint8_t RGB_BLANK[3]  = {LOW, LOW, LOW};
