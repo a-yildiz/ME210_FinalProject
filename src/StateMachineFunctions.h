@@ -13,8 +13,8 @@ bool StrongestBeaconSignalFound(int old_IR, int new_IR){
 lines detectLine(int pin){
     // Return WHITE, BLACK or RED; sensed from the IR line sensor.
     // From floor to top of sensor where the wires connect: exactly 1 inch.
-    int min_red   = 420;
-    int black_min = 500;
+    int min_red   = 430;   // drop this to 420 during daylight
+    int black_min = 550;   // drop this to 500 during daylight
     if (analogRead(pin) > black_min) {
         return BLACK;}
     else if (analogRead(pin) < min_red) {
@@ -79,7 +79,7 @@ void MotorPulse(void (*func)(int, int), int speed, int offset_B=0, int millis=50
     Metro tempTimer(millis); // [ms]
     tempTimer.reset();
     while (!tempTimer.check()){
-        // Serial.println("Pulsing!");
+        Serial.println("Pulsing!");
         func(speed, offset_B);
     }
     StopMotors();
@@ -108,6 +108,20 @@ void MoveBackward(int def_speed=220, int offset_B=0){
     digitalWrite(DIR_A_2, FORWARD_A);
     digitalWrite(DIR_B_1, !FORWARD_B);
     digitalWrite(DIR_B_2, FORWARD_B);
+    speed_A = def_speed + offset_A;
+    speed_B = def_speed + offset_B;
+    analogWrite(PWM_A, speed_A);
+    analogWrite(PWM_B, speed_B);
+}
+
+void RotateBackward(int def_speed=220, int offset_B=0){
+    // Rotate both motors at equal torque.
+    int offset_A = 0;
+
+    digitalWrite(DIR_A_1, !FORWARD_A);
+    digitalWrite(DIR_A_2, FORWARD_A);
+    digitalWrite(DIR_B_1, FORWARD_B);
+    digitalWrite(DIR_B_2, !FORWARD_B);
     speed_A = def_speed + offset_A;
     speed_B = def_speed + offset_B;
     analogWrite(PWM_A, speed_A);

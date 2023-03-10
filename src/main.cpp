@@ -22,13 +22,14 @@ int servo_angle = 0;
 
 bool verbose_states = true;
 int blind_follow_millis = 0;
+
+Metro DebugTimer(300);
 bool debug_param = false;
 
 Metro PrintVarTimer(250);
 Metro StateTimer(1000);
 Metro WaveTimer(2000);
 Metro MisssionTimer(130000);  // Mission time: 2m 10s = 130s = 130000ms
-
 
 /* Function Definitions */
 void ExecuteLEDandPotSM();
@@ -126,10 +127,10 @@ void loop() {
   // PrintVar("State", State, PrintVarTimer);
   // PrintVar("Action", Action, PrintVarTimer);
 
-
-  // if (StateTimer.check()) {debug_param = true;}
+  
+  // if (DebugTimer.check()) {debug_param = true;}
   // if (debug_param) {StopMotors();}
-  // else {RotateLeft(170, -40);}
+  // else {MoveBackward(240, -110);}
   
 
   // /* State Machines */
@@ -253,7 +254,7 @@ void ExecutePrimarySM(){
         State = HeadingToBadBasket;
       }
       else{
-        MoveForward(160, -33);  // - (right) vs + (left)
+        MoveForward(140, -33);  // - (right) vs + (left)
       }
       break;
     }
@@ -261,10 +262,10 @@ void ExecutePrimarySM(){
 
     case HeadingToBadBasket:{
       if (verbose_states) {PrintVar("State is HeadingToBadBasket", State, PrintVarTimer);}
-      MoveForward(160, -33);
+      MoveForward(130, -33);
       
-      // PrintLineColors(lineLeftPin_in, lineRightPin_in);
       if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
+        PrintLineColors(lineLeftPin_in, lineRightPin_in);
         Serial.println("Red tape entered!");
         // State = DebugLineSensors;
         // State = RotateLeftToFindRedTape;
@@ -279,18 +280,19 @@ void ExecutePrimarySM(){
       if (verbose_states) {PrintVar("State is StopBrieflyBeforeTurn", State, PrintVarTimer);}
       StopMotors();
       if (StateTimer.check()){
+        Serial.println("Rotating left!");
         State = RotateLeftToFindRedTape;
-        StateTimer.interval(450);
-        StateTimer.reset();
+        // StateTimer.interval(450);
+        // StateTimer.reset();
       }
       break;
     }
 
     case RotateLeftToFindRedTape:{
       if (verbose_states) {PrintVar("State is RotateLeftToFindRedTape", State, PrintVarTimer);}
-      RotateLeft(170, -40);
+      RotateLeft(150, -30);
       
-      if (StateTimer.check()){
+      if (detectLine(lineRightPin_in)==RED){
         Serial.println("Rotated left");
         // State = StopIndefinitely;
         State = FollowingRedTapeToBasket;
@@ -300,15 +302,55 @@ void ExecutePrimarySM(){
 
     case FollowingRedTapeToBasket:{
       if (verbose_states) {PrintVar("State is FollowingRedTapeToBasket", State, PrintVarTimer);}
-      followRedLine(140, 30, -30, "fwd");
-      // PrintLineColors(lineLeftPin_in, lineRightPin_in);
+      followRedLine(120, 0, -10, "fwd");
       if ((detectLine(lineLeftPin_in)==BLACK) || (detectLine(lineRightPin_in)==BLACK)){
-        // State = DumpingBalls;
-        State = StopIndefinitely;
+        PrintLineColors(lineLeftPin_in, lineRightPin_in);
+        // State = StopIndefinitely;
+        StateTimer.interval(2000);
         StateTimer.reset();
+        State = DumpingBalls;
       }
       break;
     }
+
+
+    case DumpingBalls:{
+      if (verbose_states) {PrintVar("State is DumpingBalls", State, PrintVarTimer);}
+      StopMotors();
+      RaiseGate();
+
+      if (StateTimer.check()){
+        LowerGate();
+        StateTimer.interval(400);
+        StateTimer.reset();
+
+        if (Basket==BAD){
+          State = HeadingBackFromBadBasket;
+        }
+        else {
+          State = HeadingBackFromGoodBasket;
+        }
+      }
+      break;
+    }
+
+
+  case HeadingBackFromBadBasket:{
+      if (verbose_states) {PrintVar("State is HeadingBackFromBadBasket", State, PrintVarTimer);}
+      MoveBackward(250, -110);
+
+      if (StateTimer.check()){
+        State = StopIndefinitely;
+      }
+      break;
+  }
+
+
+
+
+
+
+
 
 
     case HeadingToGoodBasket:{
@@ -342,38 +384,7 @@ void ExecutePrimarySM(){
       break;
     }
 
-    case DumpingBalls:{
-      if (verbose_states) {PrintVar("State is DumpingBalls", State, PrintVarTimer);}
-      StopMotors();
-      RaiseGate();
 
-      if (StateTimer.check()){
-        LowerGate();
-        StateTimer.reset();
-
-        if (Basket==BAD){
-          rotateBetaBad();
-          State = HeadingBackFromBadBasket;
-        }
-        else {
-          rotateBetaGood();
-          State = HeadingBackFromGoodBasket;
-        }
-      }
-      break;
-    }
-
-    case HeadingBackFromBadBasket:{
-      if (verbose_states) {PrintVar("State is HeadingBackFromBadBasket", State, PrintVarTimer);}
-      if (StateTimer.check()){
-        MoveForward(0);
-        if ((detectLine(lineLeftPin_in)==RED) || (detectLine(lineRightPin_in)==RED)){
-          followRedLine(0);
-          State = FollowingRedTapeToStudio;
-        }
-      }
-      break;
-    }
 
     case HeadingBackFromGoodBasket:{
       if (verbose_states) {PrintVar("State is HeadingBackFromGoodBasket", State, PrintVarTimer);}
