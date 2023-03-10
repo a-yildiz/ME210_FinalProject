@@ -547,7 +547,7 @@ void ExecutePrimarySM()
     {
       if (dumpcount == 2)
       {
-        MotorPulse(MoveForward, 140, -30, 800);
+        MotorPulse(MoveForward, 140, -30, 1000);
         StopMotors();
         delay(3000);
         dumpcount = 0;
@@ -576,7 +576,7 @@ void ExecutePrimarySM()
       dumpcount += 1;
       dumped = true;
     }
-    StartRotatingCoMReverse(115, -30);
+    StartRotatingCoMReverse(135, -30);
     // StopMotors();
     if (detectLine(lineLeftPin_in, 500, 700) == RED || detectLine(lineRightPin_in, 650, 763) == RED)
     {
@@ -1090,7 +1090,7 @@ void ExecutePrimarySM()
 void ExecutePowerSM()
 {
   // Wave at audiance when beginning mission.
-  if (!WaveTimer.check() && State==AtStudioOrientAdjust)
+  if (!WaveTimer.check() && State == AtStudioOrientAdjust)
   {
     if (no_of_waves % 2 == 1)
     {
@@ -1106,23 +1106,22 @@ void ExecutePowerSM()
     }
   }
 
-
   // Stop when mission ends.
   if (MisssionTimer.check())
   {
     StopMotors();
 
-    if (!mission_ended_flag){
+    if (!mission_ended_flag)
+    {
       WaveTimer.reset();
       mission_ended_flag = true;
     }
-
 
     if (no_of_waves % 2 == 1)
     {
       setRGBcolor(RGB_PURPLE);
       WaveTimer.reset();
-      no_of_waves++;    
+      no_of_waves++;
     }
     else
     {
