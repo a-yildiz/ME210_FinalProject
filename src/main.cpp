@@ -37,6 +37,7 @@ bool lastTurningRight = false;
 bool hitJunction = false;
 
 bool dumped = false;
+int dumpcount = 0;
 
 int servo_angle = 0;
 
@@ -542,6 +543,15 @@ void ExecutePrimarySM()
 
     if (detectLine(lineRightPin_in, 650, 763) == BLACK || (detectLine(lineLeftPin_in, 500, 700) == BLACK))
     {
+      if (dumpcount == 2)
+      {
+        MotorPulse(MoveForward, 140, -30, 100);
+        StopMotors();
+        delay(3000);
+        dumpcount = 0;
+        State = AtStudioNotOriented;
+        break;
+      }
       StopMotors();
       hitJunction = false;
       State = DumpAndTurn;
@@ -557,10 +567,11 @@ void ExecutePrimarySM()
       FlickerGate();
       delay(2000);
       MotorPulse(MoveBackward, 180, -30, 200);
+      MotorPulse(StartRotatingCoMReverse, 180, -30, 180);
+      dumpcount += 1;
       dumped = true;
     }
-    MotorPulse(StartRotatingCoMReverse, 150, -30, 90);
-    MotorPulse(StopMotors, 0, 0, 30);
+    StartRotatingCoMReverse(135, -30);
     if (detectLine(lineLeftPin_in, 500, 700) == RED || detectLine(lineRightPin_in, 650, 763) == RED)
     {
       StopMotors();
